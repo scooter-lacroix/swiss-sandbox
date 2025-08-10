@@ -409,5 +409,3 @@ result = await search_code_advanced(pattern="TODO", search_type="simple")
 **Search & Indexing:** 25 tools  
 **Execution & Artifacts:** 18 tools  
 **System & Utilities:** 6 tools
-
-All tools are production-ready with full error handling, logging, and resource management.

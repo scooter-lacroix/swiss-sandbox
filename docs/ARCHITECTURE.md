@@ -1,72 +1,71 @@
-# Complete Ultimate Swiss Army Knife MCP Server
+# Swiss Sandbox Architecture
 
-## 🚀 FULL IMPLEMENTATION - NO SHORTCUTS
+## Overview
 
-This is the COMPLETE implementation of the Ultimate Swiss Army Knife MCP Server with ALL functionality from all three systems fully integrated. Every feature is implemented in detail with no stubs, simulations, or shortcuts.
+Swiss Sandbox is a comprehensive MCP server that integrates workspace management, code search, and execution capabilities into a unified platform. The system provides isolated environments for safe code execution, intelligent task automation, and advanced code indexing.
 
-## 📋 Complete Feature List
+## Core Feature Set
 
-### ✅ Intelligent Sandbox System (100% Complete)
-- **Workspace Management**
-  - Full Docker containerization with fallback mechanisms
-  - Complete Git history preservation
-  - Resource limits enforcement (CPU, memory, disk, network)
-  - Network isolation with whitelist control
-  - Filesystem boundaries with path validation
-  
-- **Codebase Analysis**
-  - Multi-language detection (20+ languages)
-  - Framework identification
-  - Dependency analysis with version tracking
-  - Code metrics calculation
-  - Symbol extraction
-  - Import analysis
-  
-- **Task Planning**
-  - Language-aware task generation
-  - Intelligent task breakdown
-  - Dependency resolution
-  - Support for Python, JavaScript, Java, Rust, Go, C/C++, TypeScript
-  - Automated setup, test, build, quality, deployment tasks
-  
-- **Execution Engine**
-  - Sequential and parallel execution
-  - Docker container execution
-  - Error handling with retry mechanisms
-  - Output capture and streaming
-  - Exit code tracking
-  - Artifact collection
+### Workspace Management
+- **Docker containerization** with fallback mechanisms
+- **Git history preservation** for version control
+- **Resource limits enforcement** (CPU, memory, disk, network)
+- **Network isolation** with whitelist control
+- **Filesystem boundaries** with path validation
 
-### ✅ CodeIndexer System (100% Complete)
-- **Zoekt Search Implementation**
-  - Full Zoekt integration with automatic installation
-  - Index building and management
+### Codebase Analysis
+- **Multi-language detection** supporting 20+ programming languages
+- **Framework identification** for popular frameworks
+- **Dependency analysis** with version tracking
+- **Code metrics calculation** for quality assessment
+- **Symbol extraction** for navigation
+- **Import analysis** for dependency mapping
+
+### Task Planning
+- **Language-aware task generation** based on project context
+- **Intelligent task breakdown** into manageable steps
+- **Dependency resolution** for proper execution order
+- **Multi-language support** for Python, JavaScript, Java, Rust, Go, C/C++, TypeScript
+- **Automated workflows** for setup, test, build, quality, and deployment
+
+### Execution Engine
+- **Sequential and parallel execution** modes
+- **Docker container execution** for isolation
+- **Error handling** with retry mechanisms
+- **Output capture and streaming** for real-time feedback
+- **Exit code tracking** for status monitoring
+- **Artifact collection** for results preservation
+
+### Code Search & Indexing
+- **Zoekt Search Integration**
+  - Automatic Zoekt installation and management
+  - Index building and maintenance
   - Fast code search with JSON output parsing
-  
+
 - **Advanced Search Features**
   - Multiple search backends (Zoekt, ripgrep, AST, semantic)
   - Fuzzy matching with Levenshtein distance
-  - Regex support
+  - Regular expression support
   - Case sensitivity control
-  - Context lines
+  - Context lines configuration
   - File pattern filtering
-  
+
 - **File Operations**
-  - Write with version tracking
-  - Apply diffs with backup
-  - Insert content at line
-  - Search and replace with regex
+  - Version-tracked file writing
+  - Diff application with backup
+  - Line-based content insertion
+  - Regex-enabled search and replace
   - File history with diffs
-  - Revert to version
-  
-- **Indexing**
-  - Incremental indexing
+  - Version restoration
+
+- **Indexing Capabilities**
+  - Incremental indexing for efficiency
   - Force reindex with cache clearing
   - Parallel file processing
   - File watching for changes
   - Lazy content loading
   - Memory-aware management
-  
+
 - **Storage & Caching**
   - PostgreSQL with SQLite fallback
   - Redis caching with local fallback
@@ -74,28 +73,28 @@ This is the COMPLETE implementation of the Ultimate Swiss Army Knife MCP Server 
   - Search result caching
   - Metadata persistence
 
-### ✅ Original Sandbox System (100% Complete)
+### Code Execution & Tools
 - **Code Execution**
   - Python, JavaScript, Bash execution
   - Artifact capture (plots, files, data)
   - Timeout control
   - Sandboxed execution
   - Output streaming
-  
+
 - **Enhanced REPL**
   - Interactive Python sessions
   - State preservation
   - History tracking
   - Variable management
   - Process management
-  
+
 - **Manim Animations**
   - Full Manim integration
   - Quality settings
   - Format options (mp4, gif, png)
   - Render time tracking
   - Output path management
-  
+
 - **Web Applications**
   - Auto-detection (Flask, Streamlit, FastAPI, Gradio)
   - Docker containerization
@@ -103,7 +102,7 @@ This is the COMPLETE implementation of the Ultimate Swiss Army Knife MCP Server 
   - Dependency detection
   - Export with Dockerfile
   - Docker Compose generation
-  
+
 - **Artifact Management**
   - Categorization by type
   - Backup system with compression
@@ -484,29 +483,15 @@ export = await export_web_app(
 await cleanup_all_resources(force=False)
 ```
 
-## ✅ Verification
-
-This implementation is 100% COMPLETE with:
-- ✅ NO stubs or placeholders
-- ✅ NO simulated functionality
-- ✅ NO shortcuts taken
-- ✅ FULL error handling
-- ✅ COMPLETE database schemas
-- ✅ ALL tool implementations
-- ✅ PROPER async/await usage
-- ✅ THREAD-SAFE operations
-- ✅ PRODUCTION-READY code
-
 ## 📄 License
 
 MIT License - See LICENSE file
 
 ## 🤝 Support
 
-For support, please refer to the complete documentation or open an issue.
+For support, please contact scooterlacroix@gmail.com or open an issue.
 
 ---
 
-**Version**: 3.0.0 COMPLETE  
-**Status**: FULLY IMPLEMENTED  
+**Version**: 3.0.0  
 **Last Updated**: 2025-08-10

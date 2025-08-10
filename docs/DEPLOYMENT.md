@@ -763,11 +763,9 @@ export PYTHONASYNCIODEBUG=1
 
 ### Support Resources
 
-- **Documentation**: https://docs.intelligent-sandbox.io
-- **GitHub Issues**: https://github.com/your-org/intelligent-sandbox/issues
-- **Community Forum**: https://forum.intelligent-sandbox.io
-- **Email Support**: support@intelligent-sandbox.io
-- **Slack Channel**: #intelligent-sandbox
+- **Documentation**: See `/docs` directory
+- **GitHub Issues**: https://github.com/scooter-lacroix/swiss-sandbox/issues
+- **Email Support**: scooterlacroix@gmail.com
 
 ## API Reference
 
