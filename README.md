@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Security-Enterprise%20Grade-blue?style=for-the-badge&logo=shield&logoColor=white" alt="Enterprise Security" />
 </p>
 
-[![Add to LM Studio](https://badge.lmstudio.ai/add-mcp-server.svg)](https://lmstudio.ai/add-mcp-server?github=scooter-lacroix/swiss-sandbox)
+[![Add MCP Server Swiss Sandbox to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJ1cmwiOiJodHRwczovL2dpdGh1Yi5jb20vc2Nvb3Rlci1sYWNyb2l4L3N3aXNzLXNhbmRib3gifQ%3D%3D)
 [![GitHub Stars](https://img.shields.io/github/stars/scooter-lacroix/swiss-sandbox?style=social)](https://github.com/scooter-lacroix/swiss-sandbox)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg?style=flat-square)](https://www.python.org/downloads/)
@@ -93,7 +93,7 @@ Designed from the ground up for production use:
 
 <div align="center">
   
-[![Add to LM Studio](https://badge.lmstudio.ai/add-mcp-server.svg)](https://lmstudio.ai/add-mcp-server?github=scooter-lacroix/swiss-sandbox)
+[![Add MCP Server Swiss Sandbox to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJ1cmwiOiJodHRwczovL2dpdGh1Yi5jb20vc2Nvb3Rlci1sYWNyb2l4L3N3aXNzLXNhbmRib3gifQ%3D%3D)
 
 *Click the button above to automatically install Swiss Sandbox in LM Studio*
 

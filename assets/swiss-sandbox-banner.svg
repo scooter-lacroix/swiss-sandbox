@@ -1,76 +1,137 @@
-<svg width="1200" height="300" xmlns="http://www.w3.org/2000/svg">
+<svg width="1200" height="300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300">
   <defs>
-    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FF0000;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8B0000;stop-opacity:1" />
+    <!-- Synthwave gradient backgrounds -->
+    <linearGradient id="sky-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0D0221;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1A0033;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#240046;stop-opacity:1" />
     </linearGradient>
-    <pattern id="swiss-cross" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-      <rect width="60" height="60" fill="#FF0000"/>
-      <rect x="20" y="10" width="20" height="40" fill="white"/>
-      <rect x="10" y="20" width="40" height="20" fill="white"/>
-    </pattern>
-    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    
+    <linearGradient id="sun-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF006E;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FB5607;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFBE0B;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="grid-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#8338EC;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#3A86FF;stop-opacity:0.3" />
+    </linearGradient>
+    
+    <!-- Glow filters -->
+    <filter id="text-glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
     </filter>
+    
+    <filter id="sun-glow">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Grid pattern -->
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="url(#grid-gradient)" stroke-width="1" opacity="0.3"/>
+    </pattern>
   </defs>
   
   <!-- Background -->
-  <rect width="1200" height="300" fill="url(#bg-gradient)"/>
+  <rect width="1200" height="300" fill="url(#sky-gradient)"/>
   
-  <!-- Swiss flag pattern overlay -->
-  <rect width="1200" height="300" fill="url(#swiss-cross)" opacity="0.1"/>
-  
-  <!-- Center white rectangle for text -->
-  <rect x="100" y="50" width="1000" height="200" rx="20" fill="white" opacity="0.95" filter="url(#shadow)"/>
-  
-  <!-- Swiss Army Knife Icon -->
-  <g transform="translate(150, 100)">
-    <!-- Main blade -->
-    <rect x="0" y="50" width="80" height="100" rx="10" fill="#333" filter="url(#shadow)"/>
-    <!-- Tools -->
-    <rect x="10" y="60" width="60" height="8" rx="2" fill="#888"/>
-    <rect x="10" y="75" width="60" height="8" rx="2" fill="#888"/>
-    <rect x="10" y="90" width="60" height="8" rx="2" fill="#888"/>
-    <rect x="10" y="105" width="60" height="8" rx="2" fill="#888"/>
-    <rect x="10" y="120" width="60" height="8" rx="2" fill="#888"/>
-    <!-- Swiss cross on knife -->
-    <rect x="30" y="130" width="20" height="6" fill="white"/>
-    <rect x="37" y="123" width="6" height="20" fill="white"/>
+  <!-- Stars -->
+  <g opacity="0.6">
+    <circle cx="100" cy="50" r="1" fill="white"/>
+    <circle cx="200" cy="30" r="1.5" fill="white"/>
+    <circle cx="350" cy="60" r="1" fill="white"/>
+    <circle cx="450" cy="40" r="1" fill="white"/>
+    <circle cx="550" cy="70" r="1.5" fill="white"/>
+    <circle cx="700" cy="45" r="1" fill="white"/>
+    <circle cx="850" cy="55" r="1" fill="white"/>
+    <circle cx="950" cy="35" r="1.5" fill="white"/>
+    <circle cx="1050" cy="65" r="1" fill="white"/>
+    <circle cx="1150" cy="50" r="1" fill="white"/>
   </g>
   
-  <!-- Title Text -->
-  <text x="600" y="130" font-family="'Helvetica Neue', Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="#333">
-    Swiss Sandbox
+  <!-- Retro sun/circle -->
+  <g transform="translate(600, 150)">
+    <!-- Sun with horizontal lines -->
+    <circle cx="0" cy="0" r="60" fill="url(#sun-gradient)" filter="url(#sun-glow)" opacity="0.9"/>
+    <rect x="-60" y="-30" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="-20" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="-10" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="0" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="10" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="20" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="30" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+    <rect x="-60" y="40" width="120" height="3" fill="#0D0221" opacity="0.8"/>
+  </g>
+  
+  <!-- Grid floor perspective -->
+  <g transform="translate(600, 210)">
+    <path d="M -600 0 L -300 90 L 300 90 L 600 0" fill="none" stroke="#8338EC" stroke-width="2" opacity="0.6"/>
+    <path d="M -500 0 L -250 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M -400 0 L -200 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M -300 0 L -150 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M -200 0 L -100 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M -100 0 L -50 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M 0 0 L 0 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M 100 0 L 50 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M 200 0 L 100 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M 300 0 L 150 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M 400 0 L 200 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M 500 0 L 250 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    
+    <!-- Horizontal lines -->
+    <path d="M -300 90 L 300 90" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.5"/>
+    <path d="M -400 60 L 400 60" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.4"/>
+    <path d="M -500 30 L 500 30" fill="none" stroke="#8338EC" stroke-width="1" opacity="0.3"/>
+  </g>
+  
+  <!-- Swiss cross subtle nod -->
+  <g transform="translate(600, 150)" opacity="0.2">
+    <rect x="-8" y="-25" width="16" height="50" fill="white"/>
+    <rect x="-25" y="-8" width="50" height="16" fill="white"/>
+  </g>
+  
+  <!-- Main Title -->
+  <text x="600" y="100" font-family="'Courier New', monospace" font-size="48" font-weight="bold" text-anchor="middle" fill="#FFFFFF" filter="url(#text-glow)" letter-spacing="4">
+    SWISS SANDBOX
   </text>
   
   <!-- Subtitle -->
-  <text x="600" y="180" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" text-anchor="middle" fill="#666">
-    The Ultimate AI Development Environment
+  <text x="600" y="130" font-family="'Courier New', monospace" font-size="14" text-anchor="middle" fill="#FB5607" letter-spacing="2" opacity="0.9">
+    THE ULTIMATE AI DEVELOPMENT ENVIRONMENT
   </text>
   
-  <!-- Tool icons -->
-  <g transform="translate(300, 200)">
-    <text x="0" y="0" font-size="20" fill="#888">🛠️</text>
-    <text x="40" y="0" font-size="20" fill="#888">🔍</text>
-    <text x="80" y="0" font-size="20" fill="#888">🚀</text>
-    <text x="120" y="0" font-size="20" fill="#888">🎨</text>
-    <text x="160" y="0" font-size="20" fill="#888">📦</text>
-    <text x="200" y="0" font-size="20" fill="#888">🔒</text>
-    <text x="240" y="0" font-size="20" fill="#888">⚡</text>
-    <text x="280" y="0" font-size="20" fill="#888">🤖</text>
-    <text x="320" y="0" font-size="20" fill="#888">🌐</text>
-    <text x="360" y="0" font-size="20" fill="#888">📊</text>
-    <text x="400" y="0" font-size="20" fill="#888">💡</text>
-    <text x="440" y="0" font-size="20" fill="#888">🔧</text>
-    <text x="480" y="0" font-size="20" fill="#888">🎯</text>
-    <text x="520" y="0" font-size="20" fill="#888">✨</text>
-    <text x="560" y="0" font-size="20" fill="#888">🏗️</text>
-    <text x="600" y="0" font-size="20" fill="#888">📋</text>
+  <!-- Tool count badge -->
+  <g transform="translate(600, 250)">
+    <rect x="-80" y="-15" width="160" height="30" rx="15" fill="none" stroke="#3A86FF" stroke-width="2" opacity="0.8"/>
+    <text x="0" y="5" font-family="'Courier New', monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="#3A86FF">
+      68 POWERFUL TOOLS
+    </text>
   </g>
   
-  <!-- Version badge -->
-  <g transform="translate(1050, 100)">
-    <rect x="0" y="0" width="80" height="30" rx="15" fill="#4CAF50"/>
-    <text x="40" y="20" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="white">v3.0.0</text>
+  <!-- Version in corner -->
+  <text x="1150" y="280" font-family="'Courier New', monospace" font-size="12" text-anchor="end" fill="#8338EC" opacity="0.8">
+    v3.0.0
+  </text>
+  
+  <!-- Decorative elements -->
+  <g opacity="0.6">
+    <!-- Left side accent lines -->
+    <rect x="50" y="140" width="100" height="2" fill="#FB5607"/>
+    <rect x="70" y="150" width="60" height="2" fill="#3A86FF"/>
+    <rect x="90" y="160" width="40" height="2" fill="#8338EC"/>
+    
+    <!-- Right side accent lines -->
+    <rect x="1050" y="140" width="100" height="2" fill="#FB5607"/>
+    <rect x="1070" y="150" width="60" height="2" fill="#3A86FF"/>
+    <rect x="1070" y="160" width="40" height="2" fill="#8338EC"/>
   </g>
 </svg>
