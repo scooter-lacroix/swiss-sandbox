@@ -92,14 +92,126 @@ Designed from the ground up for production use:
 ### **Option 1: One-Click Install (Recommended)**
 
 <div align="center">
-  
-[![Add MCP Server Swiss Sandbox to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJ1cmwiOiJodHRwczovL2dpdGh1Yi5jb20vc2Nvb3Rlci1sYWNyb2l4L3N3aXNzLXNhbmRib3gifQ%3D%3D)
 
-*Click the button above to automatically install Swiss Sandbox in LM Studio*
+#### **AI Assistants**
+  
+[![Add to LM Studio](https://img.shields.io/badge/Add%20to-LM%20Studio-purple?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMyA3VjE3TDEyIDIyTDIxIDE3VjdMMTIgMloiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4=)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJ1cmwiOiJodHRwczovL2dpdGh1Yi5jb20vc2Nvb3Rlci1sYWNyb2l4L3N3aXNzLXNhbmRib3gifQ%3D%3D)
+[![Add to Cursor](https://img.shields.io/badge/Add%20to-Cursor-black?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTIgMjJNMiAxMkwyMiAxMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPg==)](#cursor-configuration)
+[![Add to Windsurf](https://img.shields.io/badge/Add%20to-Windsurf-blue?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMgMTJDMyAxMiA2IDE0IDEyIDE0QzE4IDE0IDIxIDEyIDIxIDEyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+)](#windsurf-configuration)
+
+#### **Development Environments**
+
+[![Add to VS Code](https://img.shields.io/badge/Add%20to-VS%20Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)](#vs-code-configuration)
+[![Add to Warp](https://img.shields.io/badge/Add%20to-Warp-01A4FF?style=for-the-badge&logo=warp&logoColor=white)](#warp-configuration)
 
 </div>
 
-### **Option 2: Manual Installation**
+### **Option 2: Quick Configuration**
+
+<details>
+<summary><b>🎨 Cursor Configuration</b></summary>
+
+Add to your Cursor settings (`~/.cursor/settings.json`):
+
+```json
+{
+  "mcpServers": {
+    "swiss-sandbox": {
+      "command": "python3",
+      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/swiss-sandbox/src"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>🌊 Windsurf Configuration</b></summary>
+
+Add to your Windsurf MCP config (`~/.windsurf/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "swiss-sandbox": {
+      "command": "python3",
+      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/swiss-sandbox/src"
+      }
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>💻 VS Code Configuration</b></summary>
+
+Install the MCP extension, then add to your VS Code settings:
+
+```json
+{
+  "mcp.servers": {
+    "swiss-sandbox": {
+      "command": "python3",
+      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/swiss-sandbox/src"
+      },
+      "transport": "stdio"
+    }
+  }
+}
+```
+</details>
+
+<details>
+<summary><b>⚡ Warp Configuration</b></summary>
+
+Add to your Warp AI settings (`~/.warp/ai_config.json`):
+
+```json
+{
+  "mcp_servers": [
+    {
+      "name": "swiss-sandbox",
+      "command": "python3 -m sandbox.mcp_sandbox_server_stdio",
+      "working_dir": "~/swiss-sandbox",
+      "env": {
+        "PYTHONPATH": "~/swiss-sandbox/src"
+      }
+    }
+  ]
+}
+```
+</details>
+
+<details>
+<summary><b>🔧 Generic MCP Configuration</b></summary>
+
+For any MCP-compatible client, use this configuration:
+
+```json
+{
+  "mcpServers": {
+    "swiss-sandbox": {
+      "command": "python3",
+      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "env": {
+        "PYTHONPATH": "./swiss-sandbox/src"
+      },
+      "transport": "stdio"
+    }
+  }
+}
+```
+</details>
+
+### **Option 3: Manual Installation**
 
 <details>
 <summary><b>📋 Prerequisites</b></summary>

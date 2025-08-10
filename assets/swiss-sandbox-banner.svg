@@ -19,10 +19,22 @@
     </linearGradient>
     
     <!-- Glow filters -->
-    <filter id="text-glow">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+    <filter id="text-glow-magenta">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feFlood flood-color="#FF006E" flood-opacity="0.8"/>
+      <feComposite in2="coloredBlur" operator="in"/>
       <feMerge>
-        <feMergeNode in="coloredBlur"/>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <filter id="text-glow-cyan">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feFlood flood-color="#00FFFF" flood-opacity="0.7"/>
+      <feComposite in2="coloredBlur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
         <feMergeNode in="SourceGraphic"/>
       </feMerge>
     </filter>
@@ -100,12 +112,12 @@
   </g>
   
   <!-- Main Title -->
-  <text x="600" y="100" font-family="'Courier New', monospace" font-size="48" font-weight="bold" text-anchor="middle" fill="#FFFFFF" filter="url(#text-glow)" letter-spacing="4">
+  <text x="600" y="100" font-family="'Courier New', monospace" font-size="48" font-weight="bold" text-anchor="middle" fill="#FFFFFF" filter="url(#text-glow-magenta)" letter-spacing="4">
     SWISS SANDBOX
   </text>
   
   <!-- Subtitle -->
-  <text x="600" y="130" font-family="'Courier New', monospace" font-size="14" text-anchor="middle" fill="#FB5607" letter-spacing="2" opacity="0.9">
+  <text x="600" y="130" font-family="'Courier New', monospace" font-size="14" text-anchor="middle" fill="#00FFFF" filter="url(#text-glow-cyan)" letter-spacing="2">
     THE ULTIMATE AI DEVELOPMENT ENVIRONMENT
   </text>
   
