@@ -87,6 +87,16 @@ Designed from the ground up for production use:
 
 ---
 
+## 🎮 **Demo**
+
+**[🚀 Live Interactive Fractal Demo](https://scooter-lacroix.github.io/swiss-sandbox/fractal-demo.html)**
+
+Built with Claude Sonnet 4 in Swiss Sandbox - showcasing real-time mathematical visualization with optimized performance.
+
+*Controls: Mouse to rotate, scroll to zoom, click to regenerate, space to reset*
+
+---
+
 ## 🚄 **Installation**
 
 ### **Option 1: One-Click Install (Recommended)**
@@ -107,6 +117,46 @@ Designed from the ground up for production use:
 </div>
 
 ### **Option 2: Quick Configuration**
+
+<details>
+<summary><b>🤖 Claude Desktop Configuration</b></summary>
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "swiss-sandbox": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/swiss-sandbox",
+        "run",
+        "swiss-sandbox-server"
+      ]
+    }
+  }
+}
+```
+
+Or using Python directly:
+
+```json
+{
+  "mcpServers": {
+    "swiss-sandbox": {
+      "command": "python",
+      "args": ["-m", "sandbox.ultimate.server"],
+      "env": {
+        "SANDBOX_PROJECT_PATH": "/your/project/path",
+        "SANDBOX_MAX_WORKERS": "8",
+        "SANDBOX_CACHE_ENABLED": "true"
+      }
+    }
+  }
+}
+```
+</details>
 
 <details>
 <summary><b>🎨 Cursor Configuration</b></summary>
@@ -367,6 +417,16 @@ print(f"App running at: {app['url']}")
 ---
 
 ## 🎬 **Showcase**
+
+<div align="center">
+
+### 🚀 **See Swiss Sandbox in Action!**
+
+[![Swiss Sandbox Demo](https://img.shields.io/badge/▶%20Watch-Demo_Animation-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](media/videos/showcase_animation/1080p60/SwissSandboxShowcase.mp4)
+
+*Experience the power of 68 integrated tools working in perfect harmony through our stunning 3D visualization*
+
+</div>
 
 ### **What Can You Build?**
 

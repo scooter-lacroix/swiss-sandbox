@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiss Sandbox Fractal Demo - Built with Claude Sonnet 4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000 100%);
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+        }
+        
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffffff;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+            animation: titlePulse 3s ease-in-out infinite;
+            letter-spacing: 3px;
+        }
+        
+        .subtitle {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ffff;
+            font-size: 20px;
+            opacity: 0.8;
+            animation: subtitleFloat 4s ease-in-out infinite;
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ffff;
+            backdrop-filter: blur(10px);
+        }
+        
+        .performance {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            color: #00ff00;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ff00;
+            backdrop-filter: blur(10px);
+        }
+        
+        @keyframes titlePulse {
+            0%, 100% { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff; }
+            50% { text-shadow: 0 0 30px #ff00ff, 0 0 50px #ff00ff, 0 0 70px #ff00ff; }
+        }
+        
+        @keyframes subtitleFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0px); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+        
+        .signature {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #666;
+            font-size: 14px;
+            opacity: 0.7;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="ui-overlay">
+        <div class="title">SWISS SANDBOX FRACTAL DEMO</div>
+        <div class="subtitle">Powered by Claude Sonnet 4 • Interactive mathematical visualization</div>
+        
+        <div class="controls">
+            <h3>Interactive Controls</h3>
+            <p>Mouse: Rotate camera</p>
+            <p>Scroll: Zoom in/out</p>
+            <p>Space: Reset view</p>
+            <p>Click: Generate new pattern</p>
+        </div>
+        
+        <div class="performance" id="performance">
+            <h3>Performance Monitor</h3>
+            <p>FPS: <span id="fps">--</span></p>
+            <p>Depth: <span id="depth">3</span></p>
+            <p>Vertices: <span id="vertices">--</span></p>
+        </div>
+        
+        <div class="signature">
+            Built with Claude Sonnet 4 in Swiss Sandbox<br>
+            <a href="https://github.com/scooter-lacroix/swiss-sandbox" style="color: #00ffff; text-decoration: none;">github.com/scooter-lacroix/swiss-sandbox</a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Sonnet's approach: Clean architecture, optimal performance, stunning visuals
+        
+        class FractalMasterpiece {
+            constructor() {
+                this.initializeScene();
+                this.createFractals();
+                this.setupInteractions();
+                this.setupPerformanceMonitoring();
+                this.animate();
+            }
+            
+            initializeScene() {
+                // Scene setup with proper optimization
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ 
+                    canvas: document.getElementById('canvas'),
+                    antialias: true,
+                    alpha: true,
+                    powerPreference: "high-performance"
+                });
+                
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.setClearColor(0x000000, 1);
+                
+                // Camera positioning for optimal viewing
+                this.camera.position.set(0, 0, 10);
+                this.controls = {
+                    mouseX: 0,
+                    mouseY: 0,
+                    targetRotationX: 0,
+                    targetRotationY: 0,
+                    currentRotationX: 0,
+                    currentRotationY: 0,
+                    zoom: 1,
+                    targetZoom: 1
+                };
+                
+                // Lighting setup for 3D depth
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 10, 5);
+                this.scene.add(directionalLight);
+                
+                // Performance tracking
+                this.frameCount = 0;
+                this.lastTime = Date.now();
+                this.vertexCount = 0;
+            }
+            
+            // Optimized Koch curve generation - the RIGHT way
+            generateKochCurve(points, depth) {
+                if (depth === 0) return points;
+                
+                const newPoints = [];
+                
+                for (let i = 0; i < points.length - 1; i++) {
+                    const start = points[i];
+                    const end = points[i + 1];
+                    
+                    // Calculate the three intermediate points
+                    const oneThird = start.clone().lerp(end, 1/3);
+                    const twoThirds = start.clone().lerp(end, 2/3);
+                    
+                    // Calculate the peak of the triangle
+                    const direction = end.clone().sub(start);
+                    const perpendicular = new THREE.Vector3(-direction.y, direction.x, direction.z);
+                    perpendicular.normalize().multiplyScalar(direction.length() / (2 * Math.sqrt(3)));
+                    const peak = oneThird.clone().add(twoThirds).multiplyScalar(0.5).add(perpendicular);
+                    
+                    newPoints.push(start, oneThird, peak, twoThirds);
+                }
+                newPoints.push(points[points.length - 1]);
+                
+                return this.generateKochCurve(newPoints, depth - 1);
+            }
+            
+            createKochSnowflake(radius, depth, zOffset = 0) {
+                // Create initial triangle
+                const triangle = [
+                    new THREE.Vector3(radius, 0, zOffset),
+                    new THREE.Vector3(-radius * 0.5, radius * Math.sqrt(3) * 0.5, zOffset),
+                    new THREE.Vector3(-radius * 0.5, -radius * Math.sqrt(3) * 0.5, zOffset),
+                    new THREE.Vector3(radius, 0, zOffset) // Close the loop
+                ];
+                
+                // Generate Koch curve
+                const kochPoints = this.generateKochCurve(triangle, depth);
+                
+                // Create geometry
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(kochPoints.length * 3);
+                
+                for (let i = 0; i < kochPoints.length; i++) {
+                    positions[i * 3] = kochPoints[i].x;
+                    positions[i * 3 + 1] = kochPoints[i].y;
+                    positions[i * 3 + 2] = kochPoints[i].z;
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                this.vertexCount += kochPoints.length;
+                
+                return { geometry, points: kochPoints };
+            }
+            
+            createFractals() {
+                this.fractalGroup = new THREE.Group();
+                this.fractals = [];
+                
+                // Create multiple snowflakes with increasing complexity but smart optimization
+                const configurations = [
+                    { radius: 3, depth: 4, z: 0, color: 0x00ffff, opacity: 0.9, lineWidth: 3 },
+                    { radius: 2.5, depth: 3, z: -1, color: 0xff00ff, opacity: 0.7, lineWidth: 2.5 },
+                    { radius: 2, depth: 2, z: -2, color: 0xffff00, opacity: 0.5, lineWidth: 2 },
+                    { radius: 1.5, depth: 1, z: -3, color: 0xff0080, opacity: 0.3, lineWidth: 1.5 }
+                ];
+                
+                configurations.forEach((config, index) => {
+                    const { geometry, points } = this.createKochSnowflake(config.radius, config.depth, config.z);
+                    
+                    // Create material with proper optimization
+                    const material = new THREE.LineBasicMaterial({
+                        color: config.color,
+                        opacity: config.opacity,
+                        transparent: true,
+                        linewidth: config.lineWidth
+                    });
+                    
+                    // Create line mesh
+                    const fractal = new THREE.Line(geometry, material);
+                    
+                    // Add glow effect
+                    const glowMaterial = new THREE.LineBasicMaterial({
+                        color: config.color,
+                        opacity: config.opacity * 0.3,
+                        transparent: true,
+                        linewidth: config.lineWidth * 2
+                    });
+                    
+                    const glowFractal = new THREE.Line(geometry.clone(), glowMaterial);
+                    
+                    // Group fractal with its glow
+                    const fractalPair = new THREE.Group();
+                    fractalPair.add(glowFractal);
+                    fractalPair.add(fractal);
+                    
+                    // Store reference for animation
+                    fractalPair.userData = {
+                        originalRotation: Math.random() * Math.PI * 2,
+                        rotationSpeed: (index + 1) * 0.1,
+                        oscillationOffset: index * Math.PI * 0.5
+                    };
+                    
+                    this.fractals.push(fractalPair);
+                    this.fractalGroup.add(fractalPair);
+                });
+                
+                // Create particle field that follows fractal geometry
+                this.createParticleField();
+                
+                this.scene.add(this.fractalGroup);
+            }
+            
+            createParticleField() {
+                // Generate particles that follow the fractal structure
+                const particleCount = 500;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(particleCount * 3);
+                const colors = new Float32Array(particleCount * 3);
+                const sizes = new Float32Array(particleCount);
+                
+                // Use the largest fractal as a template for particle placement
+                const templateFractal = this.createKochSnowflake(3.5, 2, 0);
+                
+                for (let i = 0; i < particleCount; i++) {
+                    // Place some particles along the fractal curve
+                    if (i < particleCount * 0.6 && templateFractal.points.length > 0) {
+                        const pointIndex = Math.floor(Math.random() * templateFractal.points.length);
+                        const basePoint = templateFractal.points[pointIndex];
+                        
+                        // Add some randomness
+                        positions[i * 3] = basePoint.x + (Math.random() - 0.5) * 0.5;
+                        positions[i * 3 + 1] = basePoint.y + (Math.random() - 0.5) * 0.5;
+                        positions[i * 3 + 2] = basePoint.z + (Math.random() - 0.5) * 4;
+                    } else {
+                        // Random distribution for background particles
+                        positions[i * 3] = (Math.random() - 0.5) * 20;
+                        positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+                        positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+                    }
+                    
+                    // Color based on position
+                    const color = new THREE.Color();
+                    color.setHSL(
+                        (Math.atan2(positions[i * 3 + 1], positions[i * 3]) + Math.PI) / (2 * Math.PI),
+                        0.8,
+                        0.5 + Math.random() * 0.5
+                    );
+                    
+                    colors[i * 3] = color.r;
+                    colors[i * 3 + 1] = color.g;
+                    colors[i * 3 + 2] = color.b;
+                    
+                    sizes[i] = Math.random() * 3 + 1;
+                }
+                
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+                
+                const material = new THREE.PointsMaterial({
+                    size: 0.1,
+                    vertexColors: true,
+                    transparent: true,
+                    opacity: 0.8,
+                    sizeAttenuation: true
+                });
+                
+                this.particles = new THREE.Points(geometry, material);
+                this.fractalGroup.add(this.particles);
+            }
+            
+            setupInteractions() {
+                // Mouse interaction
+                window.addEventListener('mousemove', (event) => {
+                    this.controls.mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                    this.controls.mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                    
+                    this.controls.targetRotationY = this.controls.mouseX * 0.5;
+                    this.controls.targetRotationX = this.controls.mouseY * 0.3;
+                });
+                
+                // Scroll zoom
+                window.addEventListener('wheel', (event) => {
+                    event.preventDefault();
+                    this.controls.targetZoom *= (event.deltaY > 0) ? 1.1 : 0.9;
+                    this.controls.targetZoom = Math.max(0.5, Math.min(3, this.controls.targetZoom));
+                });
+                
+                // Click to regenerate
+                window.addEventListener('click', () => {
+                    this.regenerateFractals();
+                });
+                
+                // Keyboard controls
+                window.addEventListener('keydown', (event) => {
+                    if (event.code === 'Space') {
+                        event.preventDefault();
+                        this.resetView();
+                    }
+                });
+                
+                // Resize handling
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = window.innerWidth / window.innerHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+            }
+            
+            setupPerformanceMonitoring() {
+                this.performanceData = {
+                    fps: 0,
+                    frameCount: 0,
+                    lastTime: Date.now()
+                };
+            }
+            
+            updatePerformanceDisplay() {
+                this.performanceData.frameCount++;
+                const now = Date.now();
+                
+                if (now - this.performanceData.lastTime >= 1000) {
+                    this.performanceData.fps = this.performanceData.frameCount;
+                    this.performanceData.frameCount = 0;
+                    this.performanceData.lastTime = now;
+                    
+                    document.getElementById('fps').textContent = this.performanceData.fps;
+                    document.getElementById('vertices').textContent = this.vertexCount.toLocaleString();
+                }
+            }
+            
+            regenerateFractals() {
+                // Remove existing fractals
+                this.scene.remove(this.fractalGroup);
+                this.vertexCount = 0;
+                
+                // Create new ones with different parameters
+                this.createFractals();
+            }
+            
+            resetView() {
+                this.controls.targetRotationX = 0;
+                this.controls.targetRotationY = 0;
+                this.controls.targetZoom = 1;
+            }
+            
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                
+                const time = Date.now() * 0.001;
+                
+                // Smooth camera interpolation
+                this.controls.currentRotationX += (this.controls.targetRotationX - this.controls.currentRotationX) * 0.05;
+                this.controls.currentRotationY += (this.controls.targetRotationY - this.controls.currentRotationY) * 0.05;
+                this.controls.zoom += (this.controls.targetZoom - this.controls.zoom) * 0.05;
+                
+                // Apply camera transformations
+                this.fractalGroup.rotation.x = this.controls.currentRotationX;
+                this.fractalGroup.rotation.y = this.controls.currentRotationY;
+                this.fractalGroup.scale.setScalar(this.controls.zoom);
+                
+                // Animate individual fractals
+                this.fractals.forEach((fractal, index) => {
+                    const userData = fractal.userData;
+                    
+                    // Rotate each fractal at different speeds
+                    fractal.rotation.z = userData.originalRotation + time * userData.rotationSpeed;
+                    
+                    // Add subtle oscillation
+                    fractal.position.y = Math.sin(time * 0.5 + userData.oscillationOffset) * 0.1;
+                    
+                    // Pulsing opacity effect
+                    const pulse = (Math.sin(time * 2 + index) + 1) * 0.1 + 0.8;
+                    fractal.children.forEach(mesh => {
+                        mesh.material.opacity = mesh.material.userData?.baseOpacity * pulse || 0.7 * pulse;
+                    });
+                });
+                
+                // Animate particles
+                if (this.particles) {
+                    this.particles.rotation.y = time * 0.1;
+                    this.particles.rotation.z = Math.sin(time * 0.3) * 0.1;
+                    
+                    // Update particle positions for flowing effect
+                    const positions = this.particles.geometry.attributes.position.array;
+                    for (let i = 0; i < positions.length; i += 3) {
+                        positions[i + 2] += Math.sin(time + positions[i] * 0.1) * 0.01;
+                    }
+                    this.particles.geometry.attributes.position.needsUpdate = true;
+                }
+                
+                // Add gentle camera sway
+                this.camera.position.x = Math.sin(time * 0.2) * 0.5;
+                this.camera.position.y = Math.cos(time * 0.15) * 0.3;
+                this.camera.lookAt(this.scene.position);
+                
+                this.updatePerformanceDisplay();
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+        
+        // Initialize the masterpiece
+        window.addEventListener('load', () => {
+            new FractalMasterpiece();
+        });
+        
+        // Prevent context menu
+        document.addEventListener('contextmenu', e => e.preventDefault());
+    </script>
+</body>
+</html>
