@@ -1,5 +1,5 @@
 """
-Sandbox - Python Code Execution Environment
+Swiss Sandbox - The Swiss army knife of AI toolkits
 
 Enhanced Python code execution sandbox with FastMCP server integration,
 designed for secure and feature-rich code execution with artifact management
@@ -8,11 +8,11 @@ and web application support.
 
 __version__ = "0.3.0"
 __author__ = "Sandbox Development Team"
-__description__ = "Enhanced Python code execution sandbox with microsandbox integration and FastMCP server support"
+__description__ = "Swiss army knife of AI toolkits - Enhanced Python code execution sandbox with microsandbox integration and FastMCP server support"
 
 # Core modules
 from . import server, utils
-from . import mcp_sandbox_server, mcp_sandbox_server_stdio
+from . import mcp_sandbox_server
 
 # Enhanced SDK
 from . import sdk
@@ -29,7 +29,6 @@ __all__ = [
     'server',
     'utils', 
     'mcp_sandbox_server',
-    'mcp_sandbox_server_stdio',
     'sdk',
     'PythonSandbox',
     'NodeSandbox',

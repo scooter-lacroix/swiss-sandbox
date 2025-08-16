@@ -1,0 +1,8 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/3977891868_3822398649_223132457.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/2852726489_3408628932_632164422.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/2852726489_1010602055_2832356383.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/2852726489_2285527039_4019873514.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/2852726489_1021136750_4019873514.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/2852726489_2364968569_975877732.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_mandelbrot/1080p60/partial_movie_files/SwissSandboxMandelbrotClean/2852726489_1433877407_4030189775.mp4'

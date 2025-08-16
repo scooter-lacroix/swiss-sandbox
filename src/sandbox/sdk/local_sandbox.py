@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 
 from .base_sandbox import BaseSandbox
 from .execution import Execution
-from ..mcp_sandbox_server_stdio import ExecutionContext, monkey_patch_matplotlib, monkey_patch_pil
+from ..core.types import ExecutionContext
 from ..core.execution_context import PersistentExecutionContext
 
 logger = logging.getLogger(__name__)
@@ -41,8 +41,9 @@ class LocalSandbox(BaseSandbox):
         self._execution_globals = self._execution_context.globals_dict
         
         # Apply monkey patches for artifact capture
-        monkey_patch_matplotlib()
-        monkey_patch_pil()
+        # TODO: Implement monkey patches for matplotlib and PIL if needed
+        # monkey_patch_matplotlib()
+        # monkey_patch_pil()
 
     async def get_default_image(self) -> str:
         """

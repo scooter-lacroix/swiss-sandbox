@@ -333,7 +333,24 @@ class PersistentExecutionContext:
                     print(f"📁 Artifacts directory: {self.artifacts_dir}")
                     print("-" * 50)
                     
-                    exec(compiled_code, self.globals_dict)
+                    # Set __name__ to "__main__" so if __name__ == "__main__" blocks work
+                    self.globals_dict['__name__'] = '__main__'
+                    
+                    # Add current directory to sys.path for imports
+                    import sys
+                    current_dir = os.getcwd()
+                    if current_dir not in sys.path:
+                        sys.path.insert(0, current_dir)
+                        path_added = True
+                    else:
+                        path_added = False
+                    
+                    try:
+                        exec(compiled_code, self.globals_dict)
+                    finally:
+                        # Remove the added path to avoid polluting sys.path
+                        if path_added and current_dir in sys.path:
+                            sys.path.remove(current_dir)
                     
                     print("-" * 50)
                     print("✅ Execution completed successfully!")

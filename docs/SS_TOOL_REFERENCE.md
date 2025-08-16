@@ -1,8 +1,8 @@
 # Swiss Sandbox (SS) Tool Reference
-**AI-Powered Development Environment with Intelligent Task Automation**
+**Swiss army knife of AI toolkits - AI-Powered Development Environment with Intelligent Task Automation**
 
 ## Overview
-Swiss Sandbox (SS) is a comprehensive MCP server that combines isolated workspace management, intelligent code analysis, automated task planning, and advanced search capabilities into a single powerful development environment.
+Swiss Sandbox (SS) - the Swiss army knife of AI toolkits - is a comprehensive MCP server that combines isolated workspace management, intelligent code analysis, automated task planning, and advanced search capabilities into a single powerful development environment.
 
 ---
 

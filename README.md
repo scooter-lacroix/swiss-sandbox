@@ -4,7 +4,7 @@
 
 # 🛠️ **Swiss Sandbox**
 
-### *The Ultimate AI Development Environment*
+### *Swiss army knife of AI toolkits*
 
 <p align="center">
   <img src="https://img.shields.io/badge/Tools-68-brightgreen?style=for-the-badge&logo=tool&logoColor=white" alt="68 Tools" />
@@ -28,7 +28,7 @@
 
 <br/>
 
-> **Transform your AI into a full-stack developer with 68 powerful tools in one unified platform**
+> **The Swiss army knife of AI toolkits - Transform your AI into a full-stack developer with 68 powerful tools in one unified platform**
 
 </div>
 
@@ -465,7 +465,7 @@ Plan and execute complex multi-step development tasks
 
 ## 🌟 **Why Developers Love Swiss Sandbox**
 
-> *"Swiss Sandbox transformed my AI assistant into a real development partner. The isolated workspaces give me confidence to let it execute any code."*  
+> *"Swiss Sandbox is truly the Swiss army knife of AI toolkits - it transformed my AI assistant into a real development partner. The isolated workspaces give me confidence to let it execute any code."*  
 > — **Senior Developer, Fortune 500**
 
 > *"The Zoekt integration is a game-changer. Searching through our 100k+ file codebase is now instant."*  

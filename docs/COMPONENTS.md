@@ -2,7 +2,7 @@
 
 ## 🚀 System Overview
 
-Swiss Sandbox is a comprehensive development environment that combines:
+Swiss Sandbox - the Swiss army knife of AI toolkits - is a comprehensive development environment that combines:
 
 1. **Intelligent Sandbox System** - Workspace isolation, task planning, and execution
 2. **CodeIndexer Functionality** - Advanced search, file manipulation, and indexing  

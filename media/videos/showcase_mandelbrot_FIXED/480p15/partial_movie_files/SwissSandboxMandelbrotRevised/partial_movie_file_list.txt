@@ -1,0 +1,11 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/1692677445_2253949921_3379609470.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/3520375185_3256070654_233432922.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/3520375185_2632821204_3225118214.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/3520375185_2448196981_2243727992.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/2930393113_3445771655_3365530788.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/895035707_863154154_2090564223.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/2901839420_1549985271_3682015505.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/4221782998_2006834065_2948607513.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/522980876_3435772291_2243503242.mp4'
+file 'file:/home/stan/Prod/sandbox/media/videos/showcase_mandelbrot_FIXED/480p15/partial_movie_files/SwissSandboxMandelbrotRevised/1374925496_789064381_2733736204.mp4'

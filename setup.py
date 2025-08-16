@@ -21,7 +21,7 @@ setup(
     version="3.0.0",
     author="Swiss Sandbox Team",
     author_email="team@swiss-sandbox.dev",
-    description="Swiss Sandbox (SS) - AI-powered development environment with intelligent task automation and code search",
+    description="Swiss Sandbox - Swiss army knife of AI toolkits - AI-powered development environment with intelligent task automation and code search",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/swiss-sandbox/swiss-sandbox",
@@ -64,8 +64,9 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "swiss-sandbox=sandbox.ultimate.server:main",
-            "ss-server=sandbox.ultimate.server:main",
+            "swiss-sandbox=sandbox.unified_server:main",
+            "ss-server=sandbox.unified_server:main",
+            "ss-ultimate=sandbox.ultimate.server:main",
             "ss-canvas=sandbox.ultimate.canvas_display:main",
             "ss-export=sandbox.ultimate.workspace_export:main",
         ],

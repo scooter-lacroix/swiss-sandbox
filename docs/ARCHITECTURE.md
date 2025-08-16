@@ -2,7 +2,7 @@
 
 ## Overview
 
-Swiss Sandbox is a comprehensive MCP server that integrates workspace management, code search, and execution capabilities into a unified platform. The system provides isolated environments for safe code execution, intelligent task automation, and advanced code indexing.
+Swiss Sandbox - the Swiss army knife of AI toolkits - is a comprehensive MCP server that integrates workspace management, code search, and execution capabilities into a unified platform. The system provides isolated environments for safe code execution, intelligent task automation, and advanced code indexing.
 
 ## Core Feature Set
 

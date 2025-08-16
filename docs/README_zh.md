@@ -4,7 +4,7 @@
 
 # 🛠️ **Swiss Sandbox (瑞士沙盒)**
 
-### *终极AI开发环境*
+### *AI工具包的瑞士军刀*
 
 <p align="center">
   <img src="https://img.shields.io/badge/工具-68个-brightgreen?style=for-the-badge&logo=tool&logoColor=white" alt="68个工具" />

@@ -3,5 +3,13 @@ Core sandbox functionality with enhanced execution context and performance optim
 """
 
 from .execution_context import PersistentExecutionContext
+from .artifact_manager import ArtifactManager, ArtifactMetadata, Artifact, ArtifactInfo, RetentionPolicy
 
-__all__ = ["PersistentExecutionContext"]
+__all__ = [
+    "PersistentExecutionContext",
+    "ArtifactManager", 
+    "ArtifactMetadata", 
+    "Artifact", 
+    "ArtifactInfo", 
+    "RetentionPolicy"
+]
