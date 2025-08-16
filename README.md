@@ -13,6 +13,7 @@
 </p>
 
 
+[![Add MCP Server Swiss Sandbox to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJtY3BTZXJ2ZXJzIjogeyJzd2lzcy1zYW5kYm94IjogeyJjb21tYW5kIjogInB5dGhvbiIsICJhcmdzIjogWyItbSIsICJzYW5kYm94LnVuaWZpZWRfc2VydmVyIl0sICJ0cmFuc3BvcnQiOiAic3RkaW8ifX19)
 [![GitHub Stars](https://img.shields.io/github/stars/scooter-lacroix/swiss-sandbox?style=social)](https://github.com/scooter-lacroix/swiss-sandbox)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg?style=flat-square)](https://www.python.org/downloads/)
