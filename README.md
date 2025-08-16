@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Security-Enterprise%20Grade-blue?style=for-the-badge&logo=shield&logoColor=white" alt="Enterprise Security" />
 </p>
 
-[![Add MCP Server Swiss Sandbox to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJ1cmwiOiJodHRwczovL2dpdGh1Yi5jb20vc2Nvb3Rlci1sYWNyb2l4L3N3aXNzLXNhbmRib3gifQ%3D%3D)
+
 [![GitHub Stars](https://img.shields.io/github/stars/scooter-lacroix/swiss-sandbox?style=social)](https://github.com/scooter-lacroix/swiss-sandbox)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg?style=flat-square)](https://www.python.org/downloads/)
@@ -105,7 +105,7 @@ Built with Claude Sonnet 4 in Swiss Sandbox - showcasing real-time mathematical 
 
 #### **AI Assistants**
   
-[![Add to LM Studio](https://img.shields.io/badge/Add%20to-LM%20Studio-purple?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMyA3VjE3TDEyIDIyTDIxIDE3VjdMMTIgMloiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4=)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJ1cmwiOiJodHRwczovL2dpdGh1Yi5jb20vc2Nvb3Rlci1sYWNyb2l4L3N3aXNzLXNhbmRib3gifQ%3D%3D)
+[![Add to LM Studio](https://img.shields.io/badge/Add%20to-LM%20Studio-purple?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMyA3VjE3TDEyIDIyTDIxIDE3VjdMMTIgMloiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4=)](#lm-studio-configuration)
 [![Add to Cursor](https://img.shields.io/badge/Add%20to-Cursor-black?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTIgMjJNMiAxMkwyMiAxMiIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjwvc3ZnPg==)](#cursor-configuration)
 [![Add to Windsurf](https://img.shields.io/badge/Add%20to-Windsurf-blue?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMgMTJDMyAxMiA2IDE0IDEyIDE0QzE4IDE0IDIxIDEyIDIxIDEyIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+)](#windsurf-configuration)
 
@@ -119,6 +119,40 @@ Built with Claude Sonnet 4 in Swiss Sandbox - showcasing real-time mathematical 
 ### **Option 2: Quick Configuration**
 
 <details>
+<summary><b>🎯 LM Studio Configuration</b></summary>
+
+1. **Install Swiss Sandbox:**
+   ```bash
+   pip install git+https://github.com/scooter-lacroix/swiss-sandbox.git
+   ```
+
+2. **Add to LM Studio MCP settings:**
+   ```json
+   {
+     "mcpServers": {
+       "swiss-sandbox": {
+         "command": "python",
+         "args": ["-m", "sandbox.unified_server"],
+         "transport": "stdio"
+       }
+     }
+   }
+   ```
+
+3. **Alternative using console command:**
+   ```json
+   {
+     "mcpServers": {
+       "swiss-sandbox": {
+         "command": "swiss-sandbox",
+         "transport": "stdio"
+       }
+     }
+   }
+   ```
+</details>
+
+<details>
 <summary><b>🤖 Claude Desktop Configuration</b></summary>
 
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
@@ -127,31 +161,23 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 {
   "mcpServers": {
     "swiss-sandbox": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/swiss-sandbox",
-        "run",
-        "swiss-sandbox-server"
-      ]
+      "command": "python",
+      "args": ["-m", "sandbox.unified_server"],
+      "env": {
+        "PYTHONPATH": "/path/to/swiss-sandbox/src"
+      }
     }
   }
 }
 ```
 
-Or using Python directly:
+Or using the package entry point:
 
 ```json
 {
   "mcpServers": {
     "swiss-sandbox": {
-      "command": "python",
-      "args": ["-m", "sandbox.ultimate.server"],
-      "env": {
-        "SANDBOX_PROJECT_PATH": "/your/project/path",
-        "SANDBOX_MAX_WORKERS": "8",
-        "SANDBOX_CACHE_ENABLED": "true"
-      }
+      "command": "swiss-sandbox"
     }
   }
 }
@@ -168,7 +194,7 @@ Add to your Cursor settings (`~/.cursor/settings.json`):
   "mcpServers": {
     "swiss-sandbox": {
       "command": "python3",
-      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "args": ["-m", "sandbox.unified_server"],
       "env": {
         "PYTHONPATH": "${workspaceFolder}/swiss-sandbox/src"
       }
@@ -188,7 +214,7 @@ Add to your Windsurf MCP config (`~/.windsurf/mcp.json`):
   "mcpServers": {
     "swiss-sandbox": {
       "command": "python3",
-      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "args": ["-m", "sandbox.unified_server"],
       "env": {
         "PYTHONPATH": "${workspaceFolder}/swiss-sandbox/src"
       }
@@ -208,7 +234,7 @@ Install the MCP extension, then add to your VS Code settings:
   "mcp.servers": {
     "swiss-sandbox": {
       "command": "python3",
-      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "args": ["-m", "sandbox.unified_server"],
       "env": {
         "PYTHONPATH": "${workspaceFolder}/swiss-sandbox/src"
       },
@@ -229,7 +255,7 @@ Add to your Warp AI settings (`~/.warp/ai_config.json`):
   "mcp_servers": [
     {
       "name": "swiss-sandbox",
-      "command": "python3 -m sandbox.mcp_sandbox_server_stdio",
+      "command": "python3 -m sandbox.unified_server",
       "working_dir": "~/swiss-sandbox",
       "env": {
         "PYTHONPATH": "~/swiss-sandbox/src"
@@ -250,7 +276,7 @@ For any MCP-compatible client, use this configuration:
   "mcpServers": {
     "swiss-sandbox": {
       "command": "python3",
-      "args": ["-m", "sandbox.mcp_sandbox_server_stdio"],
+      "args": ["-m", "sandbox.unified_server"],
       "env": {
         "PYTHONPATH": "./swiss-sandbox/src"
       },
