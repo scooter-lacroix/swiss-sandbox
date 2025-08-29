@@ -86,8 +86,8 @@ class WorkspaceManager:
         if base_workspace_dir:
             self.base_workspace_dir = Path(base_workspace_dir)
         else:
-            self.base_workspace_dir = Path(tempfile.gettempdir()) / "swiss_sandbox_workspaces"
-        
+            self.base_workspace_dir = Path.home() / ".swiss_sandbox" / "workspaces"
+
         self.base_workspace_dir.mkdir(parents=True, exist_ok=True)
         
         # Initialize workspace tracking
@@ -385,6 +385,8 @@ class WorkspaceManager:
             source_path = str(Path.cwd())
         
         # Create workspace session
+        if self._lifecycle_manager is None:
+            raise RuntimeError("Lifecycle manager not available for intelligent workspace creation")
         session = self._lifecycle_manager.create_workspace(
             source_path=source_path,
             session_id=workspace_id,

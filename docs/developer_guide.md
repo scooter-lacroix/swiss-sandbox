@@ -7,7 +7,7 @@ This guide is intended for developers interested in contributing to, enhancing, 
 ### Codebase Structure
 
 ```
-sandbox-mcp/
+swiss-sandbox/
 ├── src/                        # Main source code directory
 │   └── sandbox/               # Core sandbox package
 │       ├── __init__.py       # Package initialization
@@ -22,7 +22,7 @@ sandbox-mcp/
 │   ├── test_integration.py   # Integration tests
 │   └── test_simple_integration.py  # Simple validation tests
 ├── docs/                      # Project documentation
-├── pyproject.toml             # Project configuration
+├── setup.py                   # Project configuration
 ├── README.md                  # Main README file
 └── .gitignore                 # Git ignore file
 ```
@@ -32,8 +32,8 @@ sandbox-mcp/
 1. **Fork and Clone the Repository**
 
 ```bash
-git clone https://github.com/scooter-lacroix/sandbox-mcp.git
-cd sandbox-mcp
+git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+cd swiss-sandbox
 ```
 
 2. **Setup Virtual Environment**
@@ -99,7 +99,7 @@ pytest tests/
 
 ### Custom Settings
 
-Settings can be adjusted via `pyproject.toml`, environment variables, or directly through the Python API.
+Settings can be adjusted via `setup.py`, environment variables, or directly through the Python API.
 
 ### Logging
 

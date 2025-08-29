@@ -15,7 +15,7 @@
 
 [![Add MCP Server Swiss Sandbox to LM Studio](https://files.lmstudio.ai/deeplink/mcp-install-light.svg)](https://lmstudio.ai/install-mcp?name=swiss-sandbox&config=eyJjb21tYW5kIjogInB5dGhvbiIsICJhcmdzIjogWyItbSIsICJzYW5kYm94LnVuaWZpZWRfc2VydmVyIl0sICJ0cmFuc3BvcnQiOiAic3RkaW8ifQ==)
 [![GitHub Stars](https://img.shields.io/github/stars/scooter-lacroix/swiss-sandbox?style=social)](https://github.com/scooter-lacroix/swiss-sandbox)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg?style=flat-square)](https://www.python.org/downloads/)
 [![MCP Compatible](https://img.shields.io/badge/MCP-100%25%20Compatible-green?style=flat-square)](https://modelcontextprotocol.io)
 
@@ -99,6 +99,43 @@ Built with Claude Sonnet 4 in Swiss Sandbox - showcasing real-time mathematical 
 ---
 
 ## 🚄 **Installation**
+
+### **Prerequisites**
+
+Before installing Swiss Sandbox, ensure you have:
+
+- **Python 3.10 or higher** installed on your system
+- **Git** for cloning the repository
+- **pip** (usually comes with Python) for installing packages
+
+To check if you have Python installed:
+
+```bash
+python --version
+# or
+python3 --version
+```
+
+If not installed, download from [python.org](https://python.org).
+
+### **Simple Setup (Copy-Paste Commands)**
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+cd swiss-sandbox
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Install the package
+pip install -e .
+
+# 4. Run the server
+python -m sandbox.unified_server
+```
+
+> **Note:** For detailed installation instructions, troubleshooting, and advanced configuration options, see our [Installation Guide](docs/installation.md).
 
 ### **Option 1: One-Click Install (Recommended)**
 
@@ -375,6 +412,24 @@ print(f"App running at: {app['url']}")
 
 ---
 
+## 📖 **Usage**
+
+### **Basic Usage**
+
+After installing, you can use Swiss Sandbox through your MCP-compatible client.
+
+### **Example Commands**
+
+```bash
+# Create a workspace
+python -c "from sandbox import create_workspace; print(create_workspace('/path/to/project'))"
+
+# Execute code
+python -c "from sandbox import execute_code; print(execute_code('print(\"Hello World\")'))"
+```
+
+---
+
 ## 📊 **Performance Metrics**
 
 <div align="center">
@@ -490,6 +545,24 @@ Plan and execute complex multi-step development tasks
 
 ---
 
+## 🔧 **Troubleshooting**
+
+### **Common Issues**
+
+- **Installation fails**: Ensure you have Python 3.10+ installed. Try `python --version`.
+
+- **Server won't start**: Check if port 8000 is available. Use `lsof -i :8000` to check.
+
+- **Permission errors**: Run with sudo if necessary, or check file permissions.
+
+### **Getting Help**
+
+- Check the [Documentation](docs/) for detailed guides.
+
+- Open an issue on [GitHub](https://github.com/scooter-lacroix/swiss-sandbox/issues).
+
+---
+
 ## 🌟 **Why Developers Love Swiss Sandbox**
 
 > *"Swiss Sandbox is truly the Swiss army knife of AI toolkits - it transformed my AI assistant into a real development partner. The isolated workspaces give me confidence to let it execute any code."*  
@@ -549,7 +622,7 @@ Swiss Sandbox integrates best-in-class technologies:
 
 ## 📄 **License**
 
-MIT License - see [LICENSE](LICENSE) file for details.
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
 ---
 

@@ -48,12 +48,27 @@ from sandbox.intelligent.config import get_config_manager
 
 # Import Original Sandbox components (if available)
 try:
-    from sandbox.core.sandbox_manager import SandboxManager
+    # Use WorkspaceManager as a replacement for SandboxManager
+    from sandbox.core.workspace_manager import WorkspaceManager as SandboxManager
     from sandbox.core.artifact_manager import ArtifactManager
-    from sandbox.animation.manim_executor import ManimExecutor
-    from sandbox.web.app_builder import WebAppBuilder
+    from sandbox.migration.legacy_functionality import ManimExecutor, WebAppManager
+    from pathlib import Path
+
+    class WebAppBuilder:
+        """Simple wrapper for WebAppManager to provide build() method."""
+        def __init__(self):
+            self.manager = WebAppManager(Path.cwd())
+
+        def build(self, app_code: str, port: int):
+            """Build and launch web app."""
+            # Create a temporary artifacts directory for the web app
+            import tempfile
+            artifacts_dir = Path(tempfile.mkdtemp())
+            return self.manager.launch_web_app(app_code, 'flask', artifacts_dir)
+
     ORIGINAL_SANDBOX_AVAILABLE = True
-except ImportError:
+except ImportError as e:
+    print(f"Warning: Some original sandbox components not available: {e}")
     ORIGINAL_SANDBOX_AVAILABLE = False
 
 # Import execution support components
@@ -140,6 +155,14 @@ class ExecutionContext:
                 venv_bin_str = str(venv_bin)
                 if venv_bin_str not in current_path.split(os.pathsep):
                     os.environ['PATH'] = f"{venv_bin_str}{os.pathsep}{current_path}"
+
+                # Ensure system paths are included in PATH
+                system_paths = ['/bin', '/usr/bin', '/usr/local/bin']
+                current_path_list = os.environ.get('PATH', '').split(os.pathsep)
+                for sys_path in system_paths:
+                    if sys_path not in current_path_list:
+                        current_path_list.append(sys_path)
+                os.environ['PATH'] = os.pathsep.join(current_path_list)
                 
                 # Update sys.executable to point to venv python
                 sys.executable = str(venv_python)
@@ -208,7 +231,7 @@ def monkey_patch_pil():
                 image_path = ctx.artifacts_dir / f"image_{uuid.uuid4().hex[:8]}.png"
                 self.save(image_path)
                 logger.info(f"Image saved to: {image_path}")
-            return original_show(self, title, command)
+            return original_show(self)
         
         def patched_save(self, fp, format=None, **params):
             result = original_save(self, fp, format, **params)
@@ -243,11 +266,14 @@ def launch_web_app(code: str, app_type: str) -> Optional[str]:
         resource_manager = globals().get('resource_manager')
         if not ctx or not resource_manager:
             return None
-        
+
+        if ctx.project_root is None:
+            return None
+
         resource_manager.check_resource_limits()
         port = find_free_port()
         resource_manager.process_manager.cleanup_finished()
-    
+
         if app_type == 'flask':
             # Modify Flask code to run on specific port
             if 'app.run()' in code:
@@ -258,22 +284,23 @@ def launch_web_app(code: str, app_type: str) -> Optional[str]:
             else:
                 # Add app.run() call
                 modified_code = code + f'\nif __name__ == "__main__":\n    app.run(host="127.0.0.1", port={port}, debug=False)'
-            
+
             # Launch Flask app in subprocess
-            process = resource_manager.process_manager.add_process(
+            process = subprocess.Popen(
                 [sys.executable, '-c', modified_code],
                 cwd=str(ctx.project_root)
             )
-            
+            resource_manager.process_manager.add_process(process)
+
             if process.poll() is None:  # Still running
                 url = f"http://127.0.0.1:{port}"
                 ctx.web_servers[url] = process.pid
                 return url
             else:
                 return None
-        
+
         return None
-        
+
     except Exception as e:
         logger.error(f"Failed to launch web app: {e}")
         return None
@@ -283,16 +310,16 @@ def collect_artifacts() -> List[Dict[str, Any]]:
     """Collect all artifacts from the artifacts directory."""
     artifacts = []
     ctx = globals().get('ctx')
-    if not ctx or not ctx.artifacts_dir or not ctx.artifacts_dir.exists():
+    if not ctx or ctx.artifacts_dir is None or not ctx.artifacts_dir.exists():
         return artifacts
-    
+
     for file_path in ctx.artifacts_dir.iterdir():
         if file_path.is_file():
             try:
                 # Read file as base64 for embedding
                 with open(file_path, 'rb') as f:
                     content = base64.b64encode(f.read()).decode('utf-8')
-                
+
                 artifacts.append({
                     'name': file_path.name,
                     'path': str(file_path),
@@ -302,7 +329,7 @@ def collect_artifacts() -> List[Dict[str, Any]]:
                 })
             except Exception as e:
                 logger.error(f"Error reading artifact {file_path}: {e}")
-    
+
     return artifacts
 
 
@@ -336,8 +363,11 @@ class UltimateSandboxMCPServer:
         # Initialize Original Sandbox components if available
         if ORIGINAL_SANDBOX_AVAILABLE:
             self.sandbox_manager = SandboxManager()
-            self.artifact_manager = ArtifactManager()
-            self.manim_executor = ManimExecutor()
+            # Create default config for ArtifactManager
+            from sandbox.core.types import ServerConfig
+            default_config = ServerConfig()
+            self.artifact_manager = ArtifactManager(default_config)
+            self.manim_executor = ManimExecutor(Path.cwd())
             self.web_app_builder = WebAppBuilder()
         
         # Initialize CodeIndexer-style components
@@ -364,7 +394,7 @@ class UltimateSandboxMCPServer:
         """Register Intelligent Sandbox MCP tools."""
         
         @self.mcp.tool()
-        def create_workspace(source_path: str, workspace_id: str = None) -> Dict[str, Any]:
+        def create_workspace(source_path: str, workspace_id: Optional[str] = None) -> Dict[str, Any]:
             """Create a new isolated sandbox workspace."""
             try:
                 if not workspace_id:
@@ -478,8 +508,8 @@ class UltimateSandboxMCPServer:
         @self.mcp.tool()
         def search_code_advanced(
             pattern: str,
-            workspace_id: str = None,
-            file_pattern: str = None,
+            workspace_id: Optional[str] = None,
+            file_pattern: Optional[str] = None,
             case_sensitive: bool = True,
             fuzzy: bool = False
         ) -> Dict[str, Any]:
@@ -521,7 +551,7 @@ class UltimateSandboxMCPServer:
                 return {"success": False, "error": str(e)}
         
         @self.mcp.tool()
-        def find_files(pattern: str, workspace_id: str = None) -> Dict[str, Any]:
+        def find_files(pattern: str, workspace_id: Optional[str] = None) -> Dict[str, Any]:
             """Find files matching a pattern."""
             try:
                 search_path = "."
@@ -544,17 +574,22 @@ class UltimateSandboxMCPServer:
         def write_to_file(
             path: str,
             content: str,
-            workspace_id: str = None
+            workspace_id: Optional[str] = None
         ) -> Dict[str, Any]:
             """Write content to a file."""
             try:
                 if workspace_id and workspace_id in self.active_workspaces:
                     workspace = self.active_workspaces[workspace_id]
+                    if workspace.sandbox_path is None:
+                        return {"success": False, "error": "Workspace sandbox path is None"}
                     path = os.path.join(workspace.sandbox_path, path)
-                
+
+                if path is None:
+                    return {"success": False, "error": "Path is None"}
+
                 # Create directory if needed
                 os.makedirs(os.path.dirname(path), exist_ok=True)
-                
+
                 # Store version history
                 if path in self.file_versions:
                     self.file_versions[path].append({
@@ -566,10 +601,10 @@ class UltimateSandboxMCPServer:
                         "timestamp": datetime.now().isoformat(),
                         "content": content
                     }]
-                
+
                 with open(path, 'w', encoding='utf-8') as f:
                     f.write(content)
-                
+
                 return {"success": True, "path": path}
             except Exception as e:
                 return {"success": False, "error": str(e)}
@@ -577,7 +612,7 @@ class UltimateSandboxMCPServer:
         @self.mcp.tool()
         def apply_diff(
             diffs: List[Dict[str, Any]],
-            workspace_id: str = None
+            workspace_id: Optional[str] = None
         ) -> Dict[str, Any]:
             """Apply diffs to multiple files."""
             try:
@@ -586,24 +621,35 @@ class UltimateSandboxMCPServer:
                     file_path = diff.get('file_path')
                     search = diff.get('search')
                     replace = diff.get('replace')
-                    
+
+                    if not file_path or not search or replace is None:
+                        results.append({"file": file_path or "unknown", "success": False, "error": "Missing required fields"})
+                        continue
+
                     if workspace_id and workspace_id in self.active_workspaces:
                         workspace = self.active_workspaces[workspace_id]
+                        if workspace.sandbox_path is None:
+                            results.append({"file": file_path, "success": False, "error": "Workspace sandbox path is None"})
+                            continue
                         file_path = os.path.join(workspace.sandbox_path, file_path)
-                    
+
+                    if file_path is None:
+                        results.append({"file": "unknown", "success": False, "error": "File path is None"})
+                        continue
+
                     # Read file
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                    
+
                     # Apply diff
                     new_content = content.replace(search, replace)
-                    
+
                     # Write file
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(new_content)
-                    
+
                     results.append({"file": file_path, "success": True})
-                
+
                 return {"success": True, "files_modified": len(results)}
             except Exception as e:
                 return {"success": False, "error": str(e)}
@@ -628,7 +674,7 @@ class UltimateSandboxMCPServer:
         @self.mcp.tool()
         def create_manim_animation(
             code: str,
-            workspace_id: str = None
+            workspace_id: Optional[str] = None
         ) -> Dict[str, Any]:
             """Create a Manim animation."""
             try:
@@ -636,7 +682,10 @@ class UltimateSandboxMCPServer:
                     return {"success": False, "error": "Manim not available"}
                 
                 # Execute Manim code
-                result = self.manim_executor.execute(code)
+                from pathlib import Path
+                import tempfile
+                artifacts_dir = Path(tempfile.mkdtemp())
+                result = self.manim_executor.execute_manim_code(code, artifacts_dir)
                 
                 # Store artifact
                 artifact_id = f"manim_{uuid.uuid4().hex[:8]}"
@@ -653,7 +702,7 @@ class UltimateSandboxMCPServer:
         @self.mcp.tool()
         def execute_python(
             code: str,
-            workspace_id: str = None
+            workspace_id: Optional[str] = None
         ) -> Dict[str, Any]:
             """Execute Python code in sandbox."""
             try:
@@ -690,7 +739,7 @@ class UltimateSandboxMCPServer:
         def start_web_app(
             app_code: str,
             port: int = 8080,
-            workspace_id: str = None
+            workspace_id: Optional[str] = None
         ) -> Dict[str, Any]:
             """Start a web application."""
             try:
@@ -698,18 +747,18 @@ class UltimateSandboxMCPServer:
                     return {"success": False, "error": "Web app builder not available"}
                 
                 # Build and start web app
-                app_info = self.web_app_builder.build(app_code, port)
-                
+                app_url = self.web_app_builder.build(app_code, port)
+
                 return {
                     "success": True,
-                    "url": f"http://localhost:{port}",
-                    "app_id": app_info.get('app_id')
+                    "url": app_url or f"http://localhost:{port}",
+                    "app_id": f"web_app_{uuid.uuid4().hex[:8]}" if app_url else None
                 }
             except Exception as e:
                 return {"success": False, "error": str(e)}
         
         @self.mcp.tool()
-        def list_artifacts(workspace_id: str = None) -> Dict[str, Any]:
+        def list_artifacts(workspace_id: Optional[str] = None) -> Dict[str, Any]:
             """List all artifacts."""
             try:
                 artifacts = []
@@ -901,7 +950,7 @@ class UltimateSandboxMCPServer:
                 logger.info("EXECUTE: Redirected sys.stdout/stderr successfully")
                 
                 # Check if this is a web app
-                if web_app_type in ['flask', 'streamlit']:
+                if web_app_type and web_app_type in ['flask', 'streamlit']:
                     logger.info(f"EXECUTE: Launching {web_app_type} web app")
                     url = launch_web_app(code, web_app_type)
                     if url:
@@ -1024,11 +1073,14 @@ class UltimateSandboxMCPServer:
             
             # Set working directory
             if working_directory is None:
-                working_directory = str(ctx.project_root)
+                if ctx.project_root is None:
+                    working_directory = os.getcwd()
+                else:
+                    working_directory = str(ctx.project_root)
             
             # Enhanced security checks using security manager
             is_safe, violation = security_manager.check_command_security(command)
-            if not is_safe:
+            if not is_safe and violation:
                 return json.dumps({
                     'stdout': '',
                     'stderr': f'Command blocked for security: {violation.message}',

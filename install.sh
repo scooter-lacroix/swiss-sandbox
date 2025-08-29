@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PATH="/usr/local/bin:$PATH"
+
 # Swiss Sandbox Installation Script
 # This script sets up the Swiss Sandbox MCP server
 
@@ -29,7 +31,7 @@ fi
 # Create virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
     echo "📦 Creating virtual environment..."
-    python3 -m venv venv
+    uv venv venv
 else
     echo "✅ Virtual environment already exists"
 fi
@@ -40,20 +42,20 @@ source venv/bin/activate
 
 # Upgrade pip
 echo "⬆️  Upgrading pip..."
-pip install --upgrade pip --quiet
+uv pip install --upgrade pip --quiet
 
 # Install dependencies
 echo "📚 Installing dependencies..."
 if [ -f "requirements.txt" ]; then
-    pip install -r requirements.txt --quiet
+    uv pip install -r requirements.txt --quiet
 else
     # Install core dependencies directly
-    pip install fastmcp>=0.1.0 aiofiles>=23.0.0 psutil>=5.9.0 --quiet
+    uv pip install fastmcp>=0.1.0 aiofiles>=23.0.0 psutil>=5.9.0 --quiet
 fi
 
 # Install package in editable mode
 echo "🔗 Installing Swiss Sandbox..."
-pip install -e . --quiet
+uv pip install -e . --quiet
 
 # Optional: Install Docker if not present
 if ! command -v docker &> /dev/null; then

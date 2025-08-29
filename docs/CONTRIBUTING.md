@@ -16,8 +16,8 @@ Thank you for your interest in contributing to the Sandbox MCP project! This gui
 
 2. **Clone your fork:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/sandbox-mcp.git
-   cd sandbox-mcp
+   git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+   cd swiss-sandbox
    ```
 
 3. **Set up the development environment:**
@@ -233,7 +233,7 @@ uv run pytest tests/ -v
 
 ```bash
 # Run with debug logging
-SANDBOX_LOG_LEVEL=DEBUG uv run sandbox-server-stdio
+SANDBOX_LOG_LEVEL=DEBUG uv run swiss-sandbox
 
 # Interactive debugging
 python -c "

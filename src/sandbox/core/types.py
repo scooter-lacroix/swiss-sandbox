@@ -44,10 +44,10 @@ class ExecutionContext:
     def __post_init__(self):
         """Initialize context after creation."""
         if self.artifacts_dir is None:
-            import tempfile
             import uuid
-            temp_dir = Path(tempfile.gettempdir())
-            self.artifacts_dir = temp_dir / f"sandbox_artifacts_{uuid.uuid4().hex[:8]}"
+            base_dir = Path.home() / ".swiss_sandbox" / "artifacts"
+            base_dir.mkdir(parents=True, exist_ok=True)
+            self.artifacts_dir = base_dir / f"sandbox_artifacts_{uuid.uuid4().hex[:8]}"
             self.artifacts_dir.mkdir(parents=True, exist_ok=True)
 
 

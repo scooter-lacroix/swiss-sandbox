@@ -1,5 +1,30 @@
 # Installation Guide
 
+## Quick Start
+
+If you're new to Swiss Sandbox and want to get started quickly:
+
+1. **Check Prerequisites:**
+   - Python 3.9 or higher
+   - Git installed
+
+2. **Install:**
+   ```bash
+   # Clone the repository
+   git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+   cd swiss-sandbox
+
+   # Install
+   pip install -e .
+   ```
+
+3. **Run:**
+   ```bash
+   python -m sandbox.unified_server
+   ```
+
+For detailed instructions and troubleshooting, continue reading below.
+
 ## Prerequisites
 
 ### System Requirements
@@ -48,23 +73,23 @@ git --version
 
 ```bash
 # Clone the repository
-git clone https://github.com/scooter-lacroix/sandbox-mcp.git
-cd sandbox-mcp
+git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+cd swiss-sandbox
 
 # Create virtual environment and install
 uv venv
 uv pip install -e .
 
 # Verify installation
-uv run sandbox-server-stdio --help
+uv run swiss-sandbox --help
 ```
 
 ### Method 2: Using pip
 
 ```bash
 # Clone the repository
-git clone https://github.com/scooter-lacroix/sandbox-mcp.git
-cd sandbox-mcp
+git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+cd swiss-sandbox
 
 # Create and activate virtual environment
 python -m venv .venv
@@ -79,17 +104,17 @@ source .venv/bin/activate
 pip install -e .
 
 # Verify installation
-sandbox-server-stdio --help
+swiss-sandbox --help
 ```
 
 ### Method 3: Direct Installation from Git
 
 ```bash
 # Using uv
-uv pip install git+https://github.com/scooter-lacroix/sandbox-mcp.git
+uv pip install git+https://github.com/scooter-lacroix/swiss-sandbox.git
 
 # Using pip
-pip install git+https://github.com/scooter-lacroix/sandbox-mcp.git
+pip install git+https://github.com/scooter-lacroix/swiss-sandbox.git
 ```
 
 ## Development Installation
@@ -98,8 +123,8 @@ For development work, install with additional dependencies:
 
 ```bash
 # Clone repository
-git clone https://github.com/scooter-lacroix/sandbox-mcp.git
-cd sandbox-mcp
+git clone https://github.com/scooter-lacroix/swiss-sandbox.git
+cd swiss-sandbox
 
 # Install with development dependencies
 uv venv
@@ -207,10 +232,10 @@ Test the CLI tools after installation:
 
 ```bash
 # Test stdio server
-sandbox-server-stdio --help
+swiss-sandbox --help
 
 # Test HTTP server
-sandbox-server --help
+ss-server --help
 ```
 
 ## Verification
@@ -222,7 +247,7 @@ sandbox-server --help
 python -c "import sandbox; print('✓ Sandbox imported successfully')"
 
 # Test CLI
-sandbox-server-stdio --help
+swiss-sandbox --help
 
 # Run simple test
 python -c "
@@ -289,7 +314,7 @@ asyncio.run(perf_test())
 1. **Install and start the sandbox server:**
 
 ```bash
-uv run sandbox-server-stdio
+uv run swiss-sandbox
 ```
 
 2. **Add to LM Studio MCP configuration:**
@@ -300,7 +325,7 @@ Add this to your LM Studio `settings.json`:
 {
   "mcpServers": {
     "sandbox": {
-      "command": "sandbox-server-stdio",
+      "command": "swiss-sandbox",
       "args": []
     }
   }
@@ -315,7 +340,7 @@ If you need to specify the full path:
 {
   "mcpServers": {
     "sandbox": {
-      "command": "/path/to/your/.venv/bin/sandbox-server-stdio",
+      "command": "/path/to/your/.venv/bin/swiss-sandbox",
       "args": []
     }
   }
@@ -375,10 +400,10 @@ uv pip install -e .
 
 ```bash
 # On Linux/macOS, ensure proper permissions
-chmod +x .venv/bin/sandbox-server-stdio
+chmod +x .venv/bin/swiss-sandbox
 
 # Check if executables are in PATH
-which sandbox-server-stdio
+which swiss-sandbox
 ```
 
 #### Package Dependencies
@@ -390,7 +415,7 @@ uv pip list
 pip list
 
 # Update packages
-uv pip install --upgrade sandbox-mcp
+uv pip install --upgrade swiss-sandbox
 ```
 
 ### Platform-Specific Notes
@@ -425,7 +450,7 @@ If you encounter issues:
 1. **Check the logs:**
    ```bash
    # Run with debug logging
-   SANDBOX_LOG_LEVEL=DEBUG sandbox-server-stdio
+   SANDBOX_LOG_LEVEL=DEBUG swiss-sandbox
    ```
 
 2. **Run diagnostics:**
@@ -447,7 +472,7 @@ If you encounter issues:
    "
    ```
 
-3. **Check GitHub issues:** [sandbox-mcp issues](https://github.com/scooter-lacroix/sandbox-mcp/issues)
+3. **Check GitHub issues:** [swiss-sandbox issues](https://github.com/scooter-lacroix/swiss-sandbox/issues)
 
 4. **Create a new issue** with:
    - Python version (`python --version`)
