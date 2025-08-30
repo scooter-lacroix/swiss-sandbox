@@ -447,7 +447,7 @@ class ErrorHandler:
                 'total_errors': 0,
                 'errors_by_category': {},
                 'errors_by_component': {},
-                'recovery_rate': 0.0,
+                'recovery_rate': 1.0,  # 100% recovery rate when no errors
                 'recent_errors': 0
             }
         

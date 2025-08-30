@@ -23,7 +23,7 @@ class SecurityLevel(Enum):
 @dataclass
 class ResourceLimits:
     """Resource limits for execution."""
-    max_execution_time: int = 30
+    max_execution_time: Optional[int] = 300  # Default 5 minutes, None = no timeout
     max_memory_mb: int = 512
     max_processes: int = 10
     max_file_size_mb: int = 100
@@ -80,10 +80,11 @@ class ExecutionResult:
 @dataclass
 class ServerConfig:
     """Configuration for the unified server."""
-    max_execution_time: int = 30
+    max_execution_time: Optional[int] = 300  # Default 5 minutes, None = no timeout
     max_memory_mb: int = 512
     security_level: SecurityLevel = SecurityLevel.MODERATE
     artifacts_retention_days: int = 7
+    artifacts_base_dir: Optional[Path] = None
     enable_manim: bool = True
     enable_web_apps: bool = True
     enable_intelligent_features: bool = True

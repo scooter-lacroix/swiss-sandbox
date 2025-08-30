@@ -28,12 +28,31 @@ class ResourceLimits:
 
 
 @dataclass
+class ConnectionLimits:
+    """Configuration for connection limits."""
+    max_concurrent_connections: int = 50  # Maximum concurrent MCP/WebSocket connections
+    max_connections_per_ip: int = 10  # Maximum connections per IP address
+    connection_timeout: int = 3600  # Connection timeout in seconds (1 hour)
+    enable_ip_filtering: bool = True  # Enable IP-based connection filtering
+
+
+@dataclass
+class RateLimits:
+    """Configuration for rate limiting."""
+    max_requests_per_minute: int = 60  # Maximum tool executions per minute per connection
+    max_requests_per_hour: int = 1000  # Maximum tool executions per hour per connection
+    burst_limit: int = 10  # Maximum burst requests allowed
+    enable_sliding_window: bool = True  # Use sliding window rate limiting
+    rate_limit_window_seconds: int = 60  # Rate limit window in seconds
+
+
+@dataclass
 class SandboxConfig:
     """Configuration settings for the sandbox system."""
-    
+
     # Isolation settings
     isolation: IsolationConfig = field(default_factory=IsolationConfig)
-    
+
     # Workspace settings
     default_isolation_enabled: bool = True
     default_container_image: str = "ubuntu:22.04"
@@ -41,32 +60,38 @@ class SandboxConfig:
     default_memory_limit: str = "4G"
     default_disk_limit: str = "10G"
     workspace_cleanup_timeout: int = 300  # seconds
-    
+
     # Execution settings
     default_command_timeout: int = 300  # seconds
     max_task_retries: int = 3
     enable_parallel_execution: bool = False
-    
+
     # Logging settings
     log_level: str = "INFO"
     log_retention_days: int = 30
     max_log_file_size: str = "100MB"
     enable_detailed_logging: bool = True
-    
+
     # Analysis settings
     enable_codebase_caching: bool = True
     cache_expiry_hours: int = 24
     max_analysis_depth: int = 10
-    
+
     # Security settings
     allowed_network_hosts: list = field(default_factory=list)
     blocked_commands: list = field(default_factory=list)
     enable_command_validation: bool = True
-    
+
     # Performance settings
     max_concurrent_sandboxes: int = 5
     resource_monitoring_interval: int = 30  # seconds
-    
+
+    # Connection and rate limiting settings
+    connection_limits: ConnectionLimits = field(default_factory=ConnectionLimits)
+    rate_limits: RateLimits = field(default_factory=RateLimits)
+    enable_connection_limits: bool = True
+    enable_rate_limiting: bool = True
+
     # Custom settings
     custom_settings: Dict[str, Any] = field(default_factory=dict)
 
@@ -94,12 +119,18 @@ class ConfigManager:
                 with open(self.config_path, 'r') as f:
                     config_data = json.load(f)
                 
-                # Handle nested isolation config
+                # Handle nested configs
                 if 'isolation' in config_data:
                     isolation_data = config_data['isolation']
                     if 'resource_limits' in isolation_data:
                         isolation_data['resource_limits'] = ResourceLimits(**isolation_data['resource_limits'])
                     config_data['isolation'] = IsolationConfig(**isolation_data)
+
+                if 'connection_limits' in config_data:
+                    config_data['connection_limits'] = ConnectionLimits(**config_data['connection_limits'])
+
+                if 'rate_limits' in config_data:
+                    config_data['rate_limits'] = RateLimits(**config_data['rate_limits'])
                 
                 self._config = SandboxConfig(**config_data)
             except (json.JSONDecodeError, TypeError) as e:
@@ -137,13 +168,15 @@ class ConfigManager:
         """Update configuration settings."""
         if self._config is None:
             self._config = SandboxConfig()
-        
+
         for key, value in kwargs.items():
             if hasattr(self._config, key):
                 setattr(self._config, key, value)
             else:
+                if self._config.custom_settings is None:
+                    self._config.custom_settings = {}
                 self._config.custom_settings[key] = value
-        
+
         self.save_config()
     
     def get_setting(self, key: str, default: Any = None) -> Any:
@@ -154,9 +187,14 @@ class ConfigManager:
     
     def set_setting(self, key: str, value: Any) -> None:
         """Set a specific configuration setting."""
-        if hasattr(self.config, key):
+        if self._config is None:
+            self._config = SandboxConfig()
+
+        if hasattr(self._config, key):
             setattr(self._config, key, value)
         else:
+            if self._config.custom_settings is None:
+                self._config.custom_settings = {}
             self._config.custom_settings[key] = value
         self.save_config()
     

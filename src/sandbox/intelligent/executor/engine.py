@@ -34,34 +34,58 @@ class SandboxCommandExecutor(SandboxExecutorInterface):
         # Ensure workspace directory exists
         self.workspace_path.mkdir(parents=True, exist_ok=True)
     
-    def execute_command(self, command: str, working_dir: str = None, 
-                       timeout: int = None) -> CommandInfo:
+    def execute_command(self, command: str, working_dir: Optional[str] = None,
+                       timeout: Optional[int] = None) -> CommandInfo:
         """Execute a command within the sandbox environment."""
         start_time = time.time()
         work_dir = Path(working_dir) if working_dir else self.workspace_path
-        
+
         # Ensure working directory is within workspace for security
         if self.isolation_enabled:
             try:
                 work_dir.resolve().relative_to(self.workspace_path.resolve())
             except ValueError:
                 raise PermissionError(f"Working directory {work_dir} is outside workspace")
-        
+
+        # Use provided timeout, or environment variable, or default
+        if timeout is None:
+            env_timeout = os.getenv('SANDBOX_COMMAND_TIMEOUT')
+            if env_timeout:
+                try:
+                    if env_timeout.lower() in ('none', '0'):
+                        timeout = None
+                    else:
+                        timeout = int(env_timeout)
+                except ValueError:
+                    timeout = 300  # fallback to 5 minutes
+            else:
+                timeout = 300  # default 5 minutes
+
         try:
-            result = subprocess.run(
-                command,
-                shell=True,
-                cwd=str(work_dir),
-                capture_output=True,
-                text=True,
-                timeout=timeout or 300
-            )
+            if timeout is not None:
+                result = subprocess.run(
+                    command,
+                    shell=True,
+                    cwd=str(work_dir),
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout
+                )
+            else:
+                # No timeout - run without timeout parameter
+                result = subprocess.run(
+                    command,
+                    shell=True,
+                    cwd=str(work_dir),
+                    capture_output=True,
+                    text=True
+                )
             
             command_info = CommandInfo(
                 command=command,
                 working_directory=str(work_dir),
-                output=result.stdout,
-                error_output=result.stderr,
+                output=result.stdout or "",
+                error_output=result.stderr or "",
                 exit_code=result.returncode,
                 duration=time.time() - start_time
             )
@@ -227,8 +251,8 @@ class SandboxCommandExecutor(SandboxExecutorInterface):
         self.file_changes.clear()
         self.commands_executed.clear()
     
-    def execute_multi_file_operation(self, operations: List[FileOperation], 
-                                   transaction_id: str = None) -> bool:
+    def execute_multi_file_operation(self, operations: List[FileOperation],
+                                   transaction_id: Optional[str] = None) -> bool:
         """Execute multiple file operations as a coordinated transaction."""
         if not transaction_id:
             transaction_id = f"tx_{int(time.time())}"
@@ -256,14 +280,14 @@ class SandboxCommandExecutor(SandboxExecutorInterface):
                         file_path=operation.file_path,
                         change_type="create",
                         before_content=None,
-                        after_content=operation.content
+                        after_content=operation.content if operation.content is not None else ""
                     )
                 elif operation.operation_type == "modify":
                     file_change = FileChange(
                         file_path=operation.file_path,
                         change_type="modify",
                         before_content=None,  # Would need to be captured before
-                        after_content=operation.content
+                        after_content=operation.content if operation.content is not None else ""
                     )
                 elif operation.operation_type == "delete":
                     file_change = FileChange(
@@ -283,9 +307,9 @@ class SandboxCommandExecutor(SandboxExecutorInterface):
             print(f"Multi-file operation failed: {e}")
             return False
     
-    def create_file_operation(self, operation_type: str, file_path: str, 
-                            content: str = None, target_path: str = None,
-                            dependencies: List[str] = None) -> FileOperation:
+    def create_file_operation(self, operation_type: str, file_path: str,
+                            content: Optional[str] = None, target_path: Optional[str] = None,
+                            dependencies: Optional[List[str]] = None) -> FileOperation:
         """Create a FileOperation object."""
         return FileOperation(
             operation_type=operation_type,
@@ -471,7 +495,9 @@ class ExecutionEngine(ExecutionEngineInterface):
         # Determine workspace path
         workspace_path = "/tmp/sandbox"
         if plan.codebase_context and plan.codebase_context.analysis:
-            workspace_path = plan.codebase_context.analysis.structure.root_path
+            root_path = plan.codebase_context.analysis.structure.root_path
+            if root_path:
+                workspace_path = root_path
         
         # Create sandbox command executor
         sandbox_executor = SandboxCommandExecutor(workspace_path)
@@ -497,8 +523,9 @@ class ExecutionEngine(ExecutionEngineInterface):
                 
                 # Check if all dependencies are completed
                 dependencies_met = all(
-                    plan.get_task(dep_id) and plan.get_task(dep_id).status == TaskStatus.COMPLETED
+                    dep_task and dep_task.status == TaskStatus.COMPLETED
                     for dep_id in task.dependencies
+                    if (dep_task := plan.get_task(dep_id)) is not None
                 )
                 
                 if dependencies_met and task.status == TaskStatus.NOT_STARTED:
@@ -589,8 +616,8 @@ class ExecutionEngine(ExecutionEngineInterface):
                 message=str(e),
                 stack_trace=traceback.format_exc(),
                 context={
-                    "task_id": task.id, 
-                    "task_description": task.description,
+                    "task_id": task.id or "",
+                    "task_description": task.description or "",
                     "workspace_path": str(sandbox_executor.workspace_path)
                 }
             )
@@ -730,7 +757,7 @@ class ExecutionEngine(ExecutionEngineInterface):
                     message=f"Maximum number of retries ({retry_context.max_retries}) exceeded",
                     context={
                         "total_attempts": len(retry_context.previous_attempts),
-                        "last_error": retry_context.error_info.message
+                        "last_error": retry_context.error_info.message or ""
                     }
                 )
             )

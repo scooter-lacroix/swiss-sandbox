@@ -6,12 +6,208 @@ import os
 import subprocess
 import time
 import uuid
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Dict, Any, Union
-from ..types import CommandInfo, FileChange, ActionType
+
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+from ..types import CommandInfo, FileChange
+from ...intelligent.types import ActionType
 from ..logger import create_logger, ActionLoggerInterface
 from .interfaces import SandboxExecutorInterface
+
+
+class ResourceMonitor:
+    """
+    Real-time resource monitoring with configurable thresholds and alerts.
+
+    Monitors CPU, memory, disk usage, and process limits with automatic
+    alerting when thresholds are breached.
+    """
+
+    def __init__(self, logger: ActionLoggerInterface, session_id: Optional[str] = None,
+                 thresholds: Optional[Dict[str, Union[float, int]]] = None, check_interval: float = 1.0):
+        """
+        Initialize the resource monitor.
+
+        Args:
+            logger: Logger instance for alerts
+            session_id: Session identifier for logging
+            thresholds: Dictionary of thresholds (cpu_percent, memory_percent, disk_percent, max_processes)
+            check_interval: Time interval between checks in seconds
+        """
+        self.logger = logger
+        self.session_id = session_id
+        self.check_interval = check_interval
+
+        # Default thresholds
+        self.thresholds: Dict[str, Union[float, int]] = {
+            'cpu_percent': 80.0,      # CPU usage threshold (%)
+            'memory_percent': 85.0,   # Memory usage threshold (%)
+            'disk_percent': 90.0,     # Disk usage threshold (%)
+            'max_processes': 100      # Maximum number of processes
+        }
+
+        # Update with provided thresholds
+        if thresholds:
+            self.thresholds.update(thresholds)
+
+        self.monitoring = False
+        self.monitor_thread = None
+        self.alerts_triggered: set[str] = set()  # Track which alerts have been triggered
+
+        # Check if psutil is available
+        if psutil is None:
+            self.monitoring = False
+            kwargs = {
+                "error_type": "MissingDependency",
+                "message": "psutil is not available, resource monitoring disabled",
+                "context": {"operation": "resource_monitor_init"},
+                "session_id": self.session_id
+            }
+            self.logger.log_error(**kwargs)
+
+    def start_monitoring(self):
+        """Start the background monitoring thread."""
+        if self.monitoring:
+            return
+
+        self.monitoring = True
+        self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
+        self.monitor_thread.start()
+
+        # Log monitoring start
+        kwargs = {
+            "action_type": ActionType.ENVIRONMENT_SETUP,
+            "description": "Started resource monitoring",
+            "details": {
+                "thresholds": self.thresholds,
+                "check_interval": self.check_interval
+            },
+            "session_id": self.session_id
+        }
+        self.logger.log_action(**kwargs)
+
+    def stop_monitoring(self):
+        """Stop the background monitoring thread."""
+        if not self.monitoring:
+            return
+
+        self.monitoring = False
+        if self.monitor_thread:
+            self.monitor_thread.join(timeout=2.0)
+
+        # Log monitoring stop
+        kwargs = {
+            "action_type": ActionType.ENVIRONMENT_SETUP,
+            "description": "Stopped resource monitoring",
+            "details": {"alerts_triggered": list(self.alerts_triggered)},
+            "session_id": self.session_id
+        }
+        self.logger.log_action(**kwargs)
+
+    def _monitor_loop(self):
+        """Main monitoring loop running in background thread."""
+        while self.monitoring:
+            try:
+                self._check_resources()
+                time.sleep(self.check_interval)
+            except Exception as e:
+                kwargs = {
+                    "error_type": type(e).__name__,
+                    "message": f"Resource monitoring error: {str(e)}",
+                    "context": {"operation": "resource_monitoring"},
+                    "session_id": self.session_id
+                }
+                self.logger.log_error(**kwargs)
+                time.sleep(self.check_interval)
+
+    def _check_resources(self):
+        """Check current resource usage and trigger alerts if needed."""
+        if psutil is None:
+            return
+        # CPU usage
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+        if cpu_percent > self.thresholds['cpu_percent']:
+            self._trigger_alert('cpu', f"CPU usage at {cpu_percent:.1f}% (threshold: {self.thresholds['cpu_percent']}%)")
+
+        # Memory usage
+        memory = psutil.virtual_memory()
+        memory_percent = memory.percent
+        if memory_percent > self.thresholds['memory_percent']:
+            self._trigger_alert('memory', f"Memory usage at {memory_percent:.1f}% (threshold: {self.thresholds['memory_percent']}%)")
+
+        # Disk usage (for the root filesystem)
+        disk = psutil.disk_usage('/')
+        disk_percent = disk.percent
+        if disk_percent > self.thresholds['disk_percent']:
+            self._trigger_alert('disk', f"Disk usage at {disk_percent:.1f}% (threshold: {self.thresholds['disk_percent']}%)")
+
+        # Process count
+        process_count = len(psutil.pids())
+        if process_count > self.thresholds['max_processes']:
+            self._trigger_alert('processes', f"Process count at {process_count} (threshold: {self.thresholds['max_processes']})")
+
+    def _trigger_alert(self, resource_type: str, message: str):
+        """Trigger an alert for a resource threshold breach."""
+        alert_key = f"{resource_type}_alert"
+
+        # Only trigger alert once per monitoring session for each resource type
+        if alert_key in self.alerts_triggered:
+            return
+
+        self.alerts_triggered.add(alert_key)
+
+        # Log the alert
+        kwargs = {
+            "error_type": "ResourceThresholdBreach",
+            "message": f"Resource alert: {message}",
+            "context": {
+                "resource_type": resource_type,
+                "alert_message": message,
+                "thresholds": self.thresholds
+            },
+            "session_id": self.session_id
+        }
+        self.logger.log_error(**kwargs)
+
+    def get_resource_status(self) -> Dict[str, Any]:
+        """Get current resource usage status."""
+        if psutil is None:
+            return {
+                'cpu_percent': 0.0,
+                'memory_percent': 0.0,
+                'memory_used_gb': 0.0,
+                'memory_total_gb': 0.0,
+                'disk_percent': 0.0,
+                'disk_used_gb': 0.0,
+                'disk_total_gb': 0.0,
+                'process_count': 0,
+                'thresholds': self.thresholds,
+                'alerts_active': list(self.alerts_triggered)
+            }
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        process_count = len(psutil.pids())
+
+        return {
+            'cpu_percent': cpu_percent,
+            'memory_percent': memory.percent,
+            'memory_used_gb': memory.used / (1024**3),
+            'memory_total_gb': memory.total / (1024**3),
+            'disk_percent': disk.percent,
+            'disk_used_gb': disk.used / (1024**3),
+            'disk_total_gb': disk.total / (1024**3),
+            'process_count': process_count,
+            'thresholds': self.thresholds,
+            'alerts_active': list(self.alerts_triggered)
+        }
 
 
 class SandboxExecutor(SandboxExecutorInterface):
@@ -23,8 +219,9 @@ class SandboxExecutor(SandboxExecutorInterface):
     """
     
     def __init__(self, workspace_path: str, isolation_enabled: bool = True,
-                 logger: ActionLoggerInterface = None, session_id: str = None,
-                 task_id: str = None):
+                 logger: Optional[ActionLoggerInterface] = None, session_id: Optional[str] = None,
+                 task_id: Optional[str] = None, enable_resource_monitoring: bool = True,
+                 resource_thresholds: Optional[Dict[str, Union[float, int]]] = None):
         """
         Initialize the SandboxExecutor with logging integration.
         
@@ -39,6 +236,8 @@ class SandboxExecutor(SandboxExecutorInterface):
         self.isolation_enabled = isolation_enabled
         self.session_id = session_id or str(uuid.uuid4())
         self.task_id = task_id
+        self.enable_resource_monitoring = enable_resource_monitoring
+        self.resource_thresholds = resource_thresholds
         
         # Initialize logger - use database logger by default for persistent tracking
         if logger is None:
@@ -47,6 +246,16 @@ class SandboxExecutor(SandboxExecutorInterface):
             self.logger = create_logger("database", str(db_path))
         else:
             self.logger = logger
+
+        # Initialize resource monitor
+        self.resource_monitor = None
+        if self.enable_resource_monitoring:
+            self.resource_monitor = ResourceMonitor(
+                logger=self.logger,
+                session_id=self.session_id,
+                thresholds=self.resource_thresholds
+            )
+            self.resource_monitor.start_monitoring()
         
         # Ensure workspace directory exists
         self.workspace_path.mkdir(parents=True, exist_ok=True)
@@ -61,20 +270,22 @@ class SandboxExecutor(SandboxExecutorInterface):
         (self.workspace_path / ".sandbox" / "tmp").mkdir(exist_ok=True)
         
         # Log environment setup
-        self.logger.log_action(
-            action_type=ActionType.ENVIRONMENT_SETUP,
-            description=f"Initialized sandbox environment at {self.workspace_path}",
-            details={
+        kwargs = {
+            "action_type": ActionType.ENVIRONMENT_SETUP,
+            "description": f"Initialized sandbox environment at {self.workspace_path}",
+            "details": {
                 "workspace_path": str(self.workspace_path),
                 "isolation_enabled": self.isolation_enabled,
                 "session_id": self.session_id
             },
-            session_id=self.session_id,
-            task_id=self.task_id
-        )
+            "session_id": self.session_id
+        }
+        if self.task_id:
+            kwargs["task_id"] = self.task_id
+        self.logger.log_action(**kwargs)
     
-    def execute_command(self, command: str, working_dir: str = None, 
-                       timeout: int = None, env_vars: Dict[str, str] = None) -> CommandInfo:
+    def execute_command(self, command: str, working_dir: Optional[str] = None,
+                       timeout: Optional[int] = None, env_vars: Optional[Dict[str, str]] = None) -> CommandInfo:
         """
         Execute a command within the sandbox environment with comprehensive logging.
         
@@ -89,7 +300,20 @@ class SandboxExecutor(SandboxExecutorInterface):
         """
         start_time = time.time()
         work_dir = Path(working_dir) if working_dir else self.workspace_path
-        timeout = timeout or 300
+
+        # Use provided timeout, or environment variable, or default
+        if timeout is None:
+            env_timeout: Optional[str] = os.getenv('SANDBOX_COMMAND_TIMEOUT')
+            if env_timeout:
+                try:
+                    if env_timeout.lower() in ('none', '0'):
+                        timeout = None
+                    else:
+                        timeout = int(env_timeout)
+                except ValueError:
+                    timeout = 300  # fallback to 5 minutes
+            else:
+                timeout = 300  # default 5 minutes
         
         # Ensure working directory is within workspace for security
         if self.isolation_enabled:
@@ -107,16 +331,18 @@ class SandboxExecutor(SandboxExecutorInterface):
                 )
                 
                 # Log the security violation
-                self.logger.log_command(
-                    command=command,
-                    working_directory=str(work_dir),
-                    output="",
-                    error_output=error_msg,
-                    exit_code=-1,
-                    duration=0.0,
-                    session_id=self.session_id,
-                    task_id=self.task_id
-                )
+                kwargs = {
+                    "command": command,
+                    "working_directory": str(work_dir),
+                    "output": "",
+                    "error_output": error_msg,
+                    "exit_code": -1,
+                    "duration": 0.0,
+                    "session_id": self.session_id
+                }
+                if self.task_id:
+                    kwargs["task_id"] = self.task_id
+                self.logger.log_command(**kwargs)
                 
                 raise PermissionError(error_msg)
         
@@ -134,15 +360,26 @@ class SandboxExecutor(SandboxExecutorInterface):
         
         try:
             # Execute the command with full output capture
-            result = subprocess.run(
-                command,
-                shell=True,
-                cwd=str(work_dir),
-                capture_output=True,
-                text=True,
-                timeout=timeout,
-                env=env
-            )
+            if timeout is not None:
+                result = subprocess.run(
+                    command,
+                    shell=True,
+                    cwd=str(work_dir),
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    env=env
+                )
+            else:
+                # No timeout - run without timeout parameter
+                result = subprocess.run(
+                    command,
+                    shell=True,
+                    cwd=str(work_dir),
+                    capture_output=True,
+                    text=True,
+                    env=env
+                )
             
             command_info = CommandInfo(
                 command=command,
@@ -174,16 +411,18 @@ class SandboxExecutor(SandboxExecutorInterface):
             )
         
         # Log the command execution using DatabaseActionLogger.log_command()
-        self.logger.log_command(
-            command=command_info.command,
-            working_directory=command_info.working_directory,
-            output=command_info.output,
-            error_output=command_info.error_output,
-            exit_code=command_info.exit_code,
-            duration=command_info.duration,
-            session_id=self.session_id,
-            task_id=self.task_id
-        )
+        kwargs = {
+            "command": command_info.command,
+            "working_directory": command_info.working_directory,
+            "output": command_info.output,
+            "error_output": command_info.error_output,
+            "exit_code": command_info.exit_code,
+            "duration": command_info.duration,
+            "session_id": self.session_id
+        }
+        if self.task_id:
+            kwargs["task_id"] = self.task_id
+        self.logger.log_command(**kwargs)
         
         return command_info
     
@@ -211,14 +450,16 @@ class SandboxExecutor(SandboxExecutorInterface):
             full_path.write_text(content, encoding='utf-8')
             
             # Log the file creation
-            self.logger.log_file_change(
-                file_path=str(full_path),
-                change_type="create",
-                before_content=None,
-                after_content=content,
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+            kwargs = {
+                "file_path": str(full_path),
+                "change_type": "create",
+                "before_content": None,
+                "after_content": content,
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_file_change(**kwargs)
             
             return True
             
@@ -227,16 +468,18 @@ class SandboxExecutor(SandboxExecutorInterface):
             raise
         except Exception as e:
             # Log the error
-            self.logger.log_error(
-                error_type=type(e).__name__,
-                message=f"Failed to create file {file_path}: {str(e)}",
-                context={
+            kwargs = {
+                "error_type": type(e).__name__,
+                "message": f"Failed to create file {file_path}: {str(e)}",
+                "context": {
                     "file_path": file_path,
                     "operation": "create_file"
                 },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_error(**kwargs)
             return False
     
     def modify_file(self, file_path: str, content: str) -> bool:
@@ -265,14 +508,16 @@ class SandboxExecutor(SandboxExecutorInterface):
             full_path.write_text(content, encoding='utf-8')
             
             # Log the file modification
-            self.logger.log_file_change(
-                file_path=str(full_path),
-                change_type="modify",
-                before_content=before_content,
-                after_content=content,
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+            kwargs = {
+                "file_path": str(full_path),
+                "change_type": "modify",
+                "before_content": before_content,
+                "after_content": content,
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_file_change(**kwargs)
             
             return True
             
@@ -281,16 +526,18 @@ class SandboxExecutor(SandboxExecutorInterface):
             raise
         except Exception as e:
             # Log the error
-            self.logger.log_error(
-                error_type=type(e).__name__,
-                message=f"Failed to modify file {file_path}: {str(e)}",
-                context={
+            kwargs = {
+                "error_type": type(e).__name__,
+                "message": f"Failed to modify file {file_path}: {str(e)}",
+                "context": {
                     "file_path": file_path,
                     "operation": "modify_file"
                 },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_error(**kwargs)
             return False
     
     def delete_file(self, file_path: str) -> bool:
@@ -319,14 +566,16 @@ class SandboxExecutor(SandboxExecutorInterface):
                 full_path.unlink()
             
             # Log the file deletion
-            self.logger.log_file_change(
-                file_path=str(full_path),
-                change_type="delete",
-                before_content=before_content,
-                after_content=None,
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+            kwargs = {
+                "file_path": str(full_path),
+                "change_type": "delete",
+                "before_content": before_content,
+                "after_content": None,
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_file_change(**kwargs)
             
             return True
             
@@ -335,16 +584,18 @@ class SandboxExecutor(SandboxExecutorInterface):
             raise
         except Exception as e:
             # Log the error
-            self.logger.log_error(
-                error_type=type(e).__name__,
-                message=f"Failed to delete file {file_path}: {str(e)}",
-                context={
+            kwargs = {
+                "error_type": type(e).__name__,
+                "message": f"Failed to delete file {file_path}: {str(e)}",
+                "context": {
                     "file_path": file_path,
                     "operation": "delete_file"
                 },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_error(**kwargs)
             return False
     
     def install_package(self, package_name: str, package_manager: str = "auto") -> bool:
@@ -382,17 +633,19 @@ class SandboxExecutor(SandboxExecutorInterface):
         command = install_commands.get(package_manager)
         if not command:
             # Log unsupported package manager
-            self.logger.log_error(
-                error_type="UnsupportedPackageManager",
-                message=f"Unsupported package manager: {package_manager}",
-                context={
+            kwargs = {
+                "error_type": "UnsupportedPackageManager",
+                "message": f"Unsupported package manager: {package_manager}",
+                "context": {
                     "package_name": package_name,
                     "package_manager": package_manager,
                     "supported_managers": list(install_commands.keys())
                 },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_error(**kwargs)
             return False
         
         # Execute the install command
@@ -400,19 +653,21 @@ class SandboxExecutor(SandboxExecutorInterface):
         success = result.exit_code == 0
         
         # Log the package installation result
-        self.logger.log_action(
-            action_type=ActionType.PACKAGE_INSTALL,
-            description=f"Install package {package_name} using {package_manager}",
-            details={
+        kwargs = {
+            "action_type": ActionType.PACKAGE_INSTALL,
+            "description": f"Install package {package_name} using {package_manager}",
+            "details": {
                 "package_name": package_name,
                 "package_manager": package_manager,
                 "command": command,
                 "success": success,
                 "exit_code": result.exit_code
             },
-            session_id=self.session_id,
-            task_id=self.task_id
-        )
+            "session_id": self.session_id
+        }
+        if self.task_id:
+            kwargs["task_id"] = self.task_id
+        self.logger.log_action(**kwargs)
         
         return success
     
@@ -473,7 +728,7 @@ class SandboxExecutor(SandboxExecutorInterface):
         
         return path
     
-    def execute_shell_script(self, script_content: str, script_name: str = None) -> CommandInfo:
+    def execute_shell_script(self, script_content: str, script_name: Optional[str] = None) -> CommandInfo:
         """
         Execute a shell script within the sandbox.
         
@@ -502,16 +757,18 @@ class SandboxExecutor(SandboxExecutorInterface):
             
         except Exception as e:
             # Log the error
-            self.logger.log_error(
-                error_type=type(e).__name__,
-                message=f"Failed to execute shell script: {str(e)}",
-                context={
+            kwargs = {
+                "error_type": type(e).__name__,
+                "message": f"Failed to execute shell script: {str(e)}",
+                "context": {
                     "script_name": script_name,
                     "script_content": script_content[:200] + "..." if len(script_content) > 200 else script_content
                 },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_error(**kwargs)
             
             return CommandInfo(
                 command=f"bash {script_path}",
@@ -539,17 +796,19 @@ class SandboxExecutor(SandboxExecutorInterface):
             results.append(result)
             
             # Log configuration step
-            self.logger.log_action(
-                action_type=ActionType.SYSTEM_CONFIG,
-                description=f"System configuration command: {command}",
-                details={
+            kwargs = {
+                "action_type": ActionType.SYSTEM_CONFIG,
+                "description": f"System configuration command: {command}",
+                "details": {
                     "command": command,
                     "success": result.exit_code == 0,
                     "exit_code": result.exit_code
                 },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+                "session_id": self.session_id
+            }
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_action(**kwargs)
         
         return results
     
@@ -561,7 +820,7 @@ class SandboxExecutor(SandboxExecutorInterface):
             Dictionary containing execution summary
         """
         if hasattr(self.logger, 'get_log_summary'):
-            summary = self.logger.get_log_summary(session_id=self.session_id)
+            summary: Any = self.logger.get_log_summary(session_id=self.session_id)
             return {
                 "session_id": self.session_id,
                 "task_id": self.task_id,
@@ -583,47 +842,68 @@ class SandboxExecutor(SandboxExecutorInterface):
     def export_execution_log(self, format: str = "json") -> str:
         """
         Export the execution log for this session.
-        
+
         Args:
             format: Export format ("json" or "csv")
-            
+
         Returns:
             Formatted log data as string
         """
         if hasattr(self.logger, 'export_logs'):
             from ..logger.models import LogQuery
-            query = LogQuery(session_id=self.session_id)
+            query: Any = LogQuery(session_id=self.session_id)
             return self.logger.export_logs(query, format)
         else:
             return f"Log export not available with current logger type"
+
+    def get_resource_status(self) -> Optional[Dict[str, Any]]:
+        """
+        Get current resource usage status.
+
+        Returns:
+            Dictionary with resource usage information, or None if monitoring is disabled
+        """
+        if self.resource_monitor:
+            return self.resource_monitor.get_resource_status()
+        return None
     
     def cleanup_session(self) -> None:
         """Clean up session-specific resources and temporary files."""
         try:
+            # Stop resource monitoring
+            if self.resource_monitor:
+                self.resource_monitor.stop_monitoring()
+
             # Clean up temporary files
             tmp_dir = self.workspace_path / ".sandbox" / "tmp"
             if tmp_dir.exists():
                 import shutil
                 shutil.rmtree(tmp_dir)
                 tmp_dir.mkdir(exist_ok=True)
-            
+
             # Log cleanup
-            self.logger.log_action(
-                action_type=ActionType.SESSION_CLEANUP,
-                description=f"Cleaned up session {self.session_id}",
-                details={
+            kwargs = {
+                "action_type": ActionType.SESSION_CLEANUP,
+                "description": f"Cleaned up session {self.session_id}",
+                "details": {
                     "session_id": self.session_id,
                     "workspace_path": str(self.workspace_path)
-                },
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
-            
+                }
+            }
+            if self.session_id:
+                kwargs["session_id"] = self.session_id
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_action(**kwargs)
+
         except Exception as e:
-            self.logger.log_error(
-                error_type=type(e).__name__,
-                message=f"Failed to cleanup session: {str(e)}",
-                context={"session_id": self.session_id},
-                session_id=self.session_id,
-                task_id=self.task_id
-            )
+            kwargs = {
+                "error_type": type(e).__name__,
+                "message": f"Failed to cleanup session: {str(e)}",
+                "context": {"session_id": self.session_id}
+            }
+            if self.session_id:
+                kwargs["session_id"] = self.session_id
+            if self.task_id:
+                kwargs["task_id"] = self.task_id
+            self.logger.log_error(**kwargs)

@@ -74,6 +74,7 @@ except ImportError as e:
 # Import execution support components
 from sandbox.core.resource_manager import get_resource_manager
 from sandbox.core.security import get_security_manager, SecurityLevel
+from sandbox.core.connection_manager import get_connection_manager, initialize_connection_manager
 
 # Set up logging to file to avoid MCP protocol interference
 log_file = Path(tempfile.gettempdir()) / "sandbox_mcp_server.log"
@@ -346,10 +347,10 @@ class UltimateSandboxMCPServer:
     def __init__(self, server_name: str = "ultimate-sandbox"):
         """Initialize the ultimate MCP server."""
         logger.info("🚀 Initializing Ultimate Swiss Army Knife MCP Server...")
-        
+
         # Initialize FastMCP server
         self.mcp = FastMCP(server_name)
-        
+
         # Initialize Intelligent Sandbox components
         self.config_manager = get_config_manager()
         self.workspace_cloner = WorkspaceCloner()
@@ -359,35 +360,43 @@ class UltimateSandboxMCPServer:
         self.execution_engine = ExecutionEngine()
         self.action_logger = ActionLogger()
         self.cache_manager = CacheManager()
-        
+
+        # Initialize connection manager with rate limiting
+        self.connection_manager = initialize_connection_manager(self.config_manager.config)
+
         # Initialize Original Sandbox components if available
         if ORIGINAL_SANDBOX_AVAILABLE:
             self.sandbox_manager = SandboxManager()
             # Create default config for ArtifactManager
             from sandbox.core.types import ServerConfig
             default_config = ServerConfig()
-            self.artifact_manager = ArtifactManager(default_config)
+            # Use proper artifact directory instead of temp
+            if default_config.artifacts_base_dir is None:
+                import tempfile
+                from pathlib import Path
+                default_config.artifacts_base_dir = Path.home() / ".swiss_sandbox" / "artifacts"
+            self.artifact_manager = ArtifactManager(default_config, default_config.artifacts_base_dir)
             self.manim_executor = ManimExecutor(Path.cwd())
             self.web_app_builder = WebAppBuilder()
-        
+
         # Initialize CodeIndexer-style components
         self.indexed_projects = {}
         self.search_cache = {}
         self.file_versions = {}
-        
+
         # Track active resources
         self.active_workspaces = {}
         self.active_sessions = {}
         self.active_plans = {}
         self.active_artifacts = {}
-        
+
         # Register all MCP tools
         self._register_intelligent_sandbox_tools()
         self._register_codeindexer_tools()
         if ORIGINAL_SANDBOX_AVAILABLE:
             self._register_original_sandbox_tools()
         self._register_execution_tools()
-        
+
         logger.info("✅ Ultimate MCP Server initialized with all components!")
     
     def _register_intelligent_sandbox_tools(self):
@@ -884,23 +893,46 @@ class UltimateSandboxMCPServer:
             - Artifact interception and storage
             - Web app launch support
             - Interactive REPL mode
-            
+            - Rate limiting protection
+
             Args:
                 code: Python code to execute
                 interactive: If True, drop into interactive REPL after execution
                 web_app_type: Type of web app to launch ('flask' or 'streamlit')
-            
+
             Returns:
                 JSON string containing execution results, artifacts, and metadata
             """
             logger.info(f"EXECUTE: Starting with code length {len(code)}")
-            
+
+            # Check rate limiting if enabled
+            if self.config_manager.config.enable_rate_limiting:
+                # For MCP connections, we need to get the connection ID from the context
+                # This is a simplified approach - in a real WebSocket/MCP implementation,
+                # the connection ID would be available in the request context
+                connection_id = "mcp_default"  # Default for MCP stdio connections
+
+                allowed, retry_after = self.connection_manager.check_rate_limit(connection_id)
+                if not allowed:
+                    result = {
+                        'stdout': '',
+                        'stderr': f'Rate limit exceeded. Try again in {retry_after:.1f} seconds.',
+                        'error': f'Rate limit exceeded. Retry after {retry_after:.1f} seconds.',
+                        'rate_limited': True,
+                        'retry_after': retry_after,
+                        'execution_info': {
+                            'rate_limiting_enabled': True,
+                            'connection_id': connection_id
+                        }
+                    }
+                    return json.dumps(result, indent=2)
+
             # Get global execution context
             ctx = globals().get('ctx')
             if not ctx:
                 ctx = ExecutionContext()
                 globals()['ctx'] = ctx
-            
+
             # Get resource and security managers
             resource_manager = globals().get('resource_manager')
             security_manager = globals().get('security_manager')
@@ -1246,9 +1278,71 @@ class UltimateSandboxMCPServer:
             if not resource_manager:
                 resource_manager = get_resource_manager()
                 globals()['resource_manager'] = resource_manager
-            
+
             stats = resource_manager.get_resource_stats()
             return json.dumps(stats, indent=2)
+
+        @self.mcp.tool()
+        def get_connection_stats() -> str:
+            """Get connection and rate limiting statistics."""
+            stats = self.connection_manager.get_connection_stats()
+            return json.dumps(stats, indent=2)
+
+        @self.mcp.tool()
+        def configure_rate_limits(max_requests_per_minute: Optional[int] = None,
+                                 max_requests_per_hour: Optional[int] = None,
+                                 burst_limit: Optional[int] = None) -> str:
+            """Configure rate limiting settings dynamically."""
+            config = self.config_manager.config
+
+            if max_requests_per_minute is not None:
+                config.rate_limits.max_requests_per_minute = max_requests_per_minute
+            if max_requests_per_hour is not None:
+                config.rate_limits.max_requests_per_hour = max_requests_per_hour
+            if burst_limit is not None:
+                config.rate_limits.burst_limit = burst_limit
+
+            # Re-initialize connection manager with new settings
+            self.connection_manager = initialize_connection_manager(config)
+            self.config_manager.save_config()
+
+            return json.dumps({
+                'status': 'success',
+                'message': 'Rate limiting configuration updated',
+                'new_limits': {
+                    'max_requests_per_minute': config.rate_limits.max_requests_per_minute,
+                    'max_requests_per_hour': config.rate_limits.max_requests_per_hour,
+                    'burst_limit': config.rate_limits.burst_limit
+                }
+            }, indent=2)
+
+        @self.mcp.tool()
+        def configure_connection_limits(max_connections: Optional[int] = None,
+                                       max_per_ip: Optional[int] = None,
+                                       connection_timeout: Optional[int] = None) -> str:
+            """Configure connection limits dynamically."""
+            config = self.config_manager.config
+
+            if max_connections is not None:
+                config.connection_limits.max_concurrent_connections = max_connections
+            if max_per_ip is not None:
+                config.connection_limits.max_connections_per_ip = max_per_ip
+            if connection_timeout is not None:
+                config.connection_limits.connection_timeout = connection_timeout
+
+            # Re-initialize connection manager with new settings
+            self.connection_manager = initialize_connection_manager(config)
+            self.config_manager.save_config()
+
+            return json.dumps({
+                'status': 'success',
+                'message': 'Connection limits configuration updated',
+                'new_limits': {
+                    'max_connections': config.connection_limits.max_concurrent_connections,
+                    'max_per_ip': config.connection_limits.max_connections_per_ip,
+                    'connection_timeout': config.connection_limits.connection_timeout
+                }
+            }, indent=2)
         
         @self.mcp.tool()
         def emergency_cleanup() -> str:
@@ -1292,19 +1386,38 @@ class UltimateSandboxMCPServer:
     
     def get_status(self) -> Dict[str, Any]:
         """Get comprehensive server status."""
+        config = self.config_manager.config
+        connection_stats = self.connection_manager.get_connection_stats()
+
         return {
             "server": "Ultimate Swiss Army Knife MCP Server",
             "version": "1.0.0",
             "components": {
                 "intelligent_sandbox": True,
                 "codeindexer": True,
-                "original_sandbox": ORIGINAL_SANDBOX_AVAILABLE
+                "original_sandbox": ORIGINAL_SANDBOX_AVAILABLE,
+                "connection_limits": config.enable_connection_limits,
+                "rate_limiting": config.enable_rate_limiting
             },
             "active_resources": {
                 "workspaces": len(self.active_workspaces),
                 "sessions": len(self.active_sessions),
                 "plans": len(self.active_plans),
-                "artifacts": len(self.active_artifacts)
+                "artifacts": len(self.active_artifacts),
+                "connections": connection_stats.get('total_connections', 0)
+            },
+            "connection_limits": {
+                "max_concurrent_connections": config.connection_limits.max_concurrent_connections,
+                "max_connections_per_ip": config.connection_limits.max_connections_per_ip,
+                "connection_timeout_seconds": config.connection_limits.connection_timeout,
+                "ip_filtering_enabled": config.connection_limits.enable_ip_filtering
+            },
+            "rate_limits": {
+                "max_requests_per_minute": config.rate_limits.max_requests_per_minute,
+                "max_requests_per_hour": config.rate_limits.max_requests_per_hour,
+                "burst_limit": config.rate_limits.burst_limit,
+                "sliding_window_enabled": config.rate_limits.enable_sliding_window,
+                "rate_limit_window_seconds": config.rate_limits.rate_limit_window_seconds
             },
             "capabilities": [
                 "Workspace isolation",
@@ -1315,6 +1428,8 @@ class UltimateSandboxMCPServer:
                 "Version history",
                 "Python execution",
                 "Web app hosting",
+                "Connection limits",
+                "Rate limiting",
                 "Manim animations" if ORIGINAL_SANDBOX_AVAILABLE else None
             ]
         }
