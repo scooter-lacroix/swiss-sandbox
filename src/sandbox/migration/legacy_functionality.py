@@ -210,6 +210,64 @@ class WebAppManager:
             except OSError:
                 continue
         raise RuntimeError("No free ports available")
+
+    def _determine_deployment_environment(self) -> str:
+        """Determine the current deployment environment."""
+        if os.path.exists('/.dockerenv') or os.environ.get('DOCKER_CONTAINER'):
+            return 'docker'
+        elif os.environ.get('KUBERNETES_SERVICE_HOST'):
+            return 'kubernetes'
+        elif os.environ.get('AWS_REGION') or os.environ.get('GOOGLE_CLOUD_PROJECT'):
+            return 'cloud'
+        else:
+            return 'local'
+
+    def _determine_default_port(self, app_type: str) -> str:
+        """Determine default port based on app type and environment."""
+        env = self._determine_deployment_environment()
+
+        if app_type == 'flask':
+            if env == 'docker':
+                return '8000'
+            elif env == 'kubernetes':
+                return '8080'
+            else:  # local or cloud
+                return '5000'
+        elif app_type == 'streamlit':
+            if env == 'docker':
+                return '8501'
+            elif env == 'kubernetes':
+                return '8080'
+            else:  # local or cloud
+                return '8501'
+        else:
+            return '8000'
+
+    def _determine_default_host(self) -> str:
+        """Determine default host based on deployment environment."""
+        env = self._determine_deployment_environment()
+
+        if env in ['docker', 'kubernetes', 'cloud']:
+            return '0.0.0.0'
+        else:  # local
+            return '127.0.0.1'
+
+    def _determine_access_host(self) -> str:
+        """Determine access host based on deployment environment."""
+        env = self._determine_deployment_environment()
+
+        if env == 'docker':
+            return 'localhost'
+        elif env == 'kubernetes':
+            return os.environ.get('SERVICE_NAME', 'localhost')
+        elif env == 'cloud':
+            # For cloud deployments, try to get the service URL
+            service_url = os.environ.get('SERVICE_URL')
+            if service_url:
+                return service_url
+            return '0.0.0.0'
+        else:  # local
+            return 'localhost'
     
     def launch_web_app(self, code: str, app_type: str, artifacts_dir: Path) -> Optional[str]:
         """Launch a web application and return the URL."""
@@ -262,13 +320,13 @@ class WebAppManager:
             logger.error(f"Failed to launch web app: {e}")
             return None
     
-    def export_flask_app(self, code: str, artifacts_dir: Path, export_name: str = None) -> Dict[str, Any]:
+    def export_flask_app(self, code: str, artifacts_dir: Path, export_name: Optional[str] = None) -> Dict[str, Any]:
         """Export Flask application as static files and Docker container."""
         export_id = str(uuid.uuid4())[:8]
         export_name = export_name or f"flask_app_{export_id}"
         export_dir = artifacts_dir / "exports" / export_name
         export_dir.mkdir(parents=True, exist_ok=True)
-        
+
         result = {
             'success': False,
             'export_name': export_name,
@@ -277,7 +335,12 @@ class WebAppManager:
             'docker_image': None,
             'error': None
         }
-        
+
+        # Dynamically determine URLs based on deployment environment and port allocation
+        port = os.environ.get('FLASK_PORT', self._determine_default_port('flask'))
+        host = os.environ.get('FLASK_HOST', self._determine_default_host())
+        access_host = os.environ.get('ACCESS_HOST', self._determine_access_host())
+
         try:
             # Create Flask app file
             app_file = export_dir / "app.py"
@@ -294,7 +357,7 @@ class WebAppManager:
             
             # Create Dockerfile
             dockerfile = export_dir / "Dockerfile"
-            dockerfile_content = '''FROM python:3.11-slim
+            dockerfile_content = f'''FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -303,9 +366,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 
-EXPOSE 8000
+EXPOSE {port}
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "app:app"]
+CMD ["gunicorn", "--bind", "{host}:{port}", "app:app"]
 '''
             with open(dockerfile, 'w') as f:
                 f.write(dockerfile_content)
@@ -318,7 +381,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "{port}:{port}"
     environment:
       - FLASK_ENV=production
 '''
@@ -338,7 +401,7 @@ Exported Flask application from sandbox.
 docker-compose up --build
 ```
 
-The application will be available at http://localhost:8000
+The application will be available at http://{access_host}:{port}
 
 ## Running locally
 
@@ -366,13 +429,13 @@ python app.py
         
         return result
     
-    def export_streamlit_app(self, code: str, artifacts_dir: Path, export_name: str = None) -> Dict[str, Any]:
+    def export_streamlit_app(self, code: str, artifacts_dir: Path, export_name: Optional[str] = None) -> Dict[str, Any]:
         """Export Streamlit application as Docker container."""
         export_id = str(uuid.uuid4())[:8]
         export_name = export_name or f"streamlit_app_{export_id}"
         export_dir = artifacts_dir / "exports" / export_name
         export_dir.mkdir(parents=True, exist_ok=True)
-        
+
         result = {
             'success': False,
             'export_name': export_name,
@@ -381,7 +444,12 @@ python app.py
             'docker_image': None,
             'error': None
         }
-        
+
+        # Dynamically determine URLs based on deployment environment and port allocation
+        port = os.environ.get('STREAMLIT_PORT', self._determine_default_port('streamlit'))
+        host = os.environ.get('STREAMLIT_HOST', self._determine_default_host())
+        access_host = os.environ.get('ACCESS_HOST', self._determine_access_host())
+
         try:
             # Create Streamlit app file
             app_file = export_dir / "app.py"
@@ -399,7 +467,7 @@ python app.py
             
             # Create Dockerfile
             dockerfile = export_dir / "Dockerfile"
-            dockerfile_content = '''FROM python:3.11-slim
+            dockerfile_content = f'''FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -408,9 +476,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 
-EXPOSE 8501
+EXPOSE {port}
 
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.port={port}", "--server.address={host}"]
 '''
             with open(dockerfile, 'w') as f:
                 f.write(dockerfile_content)
@@ -423,10 +491,10 @@ services:
   web:
     build: .
     ports:
-      - "8501:8501"
+      - "{port}:{port}"
     environment:
-      - STREAMLIT_SERVER_PORT=8501
-      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_PORT={port}
+      - STREAMLIT_SERVER_ADDRESS={host}
 '''
             with open(compose_file, 'w') as f:
                 f.write(compose_content)
@@ -444,7 +512,7 @@ Exported Streamlit application from sandbox.
 docker-compose up --build
 ```
 
-The application will be available at http://localhost:8501
+The application will be available at http://{access_host}:{port}
 
 ## Running locally
 
@@ -532,7 +600,7 @@ class ArtifactInterceptor:
                     image_path = images_dir / f"image_{uuid.uuid4().hex[:8]}.png"
                     self.save(image_path)
                     logger.info(f"Image saved to: {image_path}")
-                return original_show(self, title, command)
+                return original_show(self)
             
             def patched_save(self, fp, format=None, **params):
                 result = original_save(self, fp, format, **params)
@@ -632,7 +700,7 @@ class IntelligentSandboxIntegration:
         
         return components
     
-    def create_workspace_session(self, source_path: str, workspace_id: str = None) -> Optional[Dict[str, Any]]:
+    def create_workspace_session(self, source_path: str, workspace_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Create a workspace session using intelligent sandbox components."""
         if not self.components_available.get('lifecycle_manager', False):
             return None
