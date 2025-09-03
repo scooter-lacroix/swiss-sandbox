@@ -6,7 +6,7 @@ Swiss Sandbox - the Swiss army knife of AI toolkits - is a comprehensive develop
 
 1. **Intelligent Sandbox System** - Workspace isolation, task planning, and execution
 2. **CodeIndexer Functionality** - Advanced search, file manipulation, and indexing  
-3. **Original Sandbox Tools** - Manim animations, Python execution, web apps
+3. **Sandbox Tools** - Manim animations, Python execution, web apps
 4. **Workspace Export System** - Export workspaces in multiple formats
 5. **Canvas Display Component** - ChatGPT Canvas-like interface for code preview
 
