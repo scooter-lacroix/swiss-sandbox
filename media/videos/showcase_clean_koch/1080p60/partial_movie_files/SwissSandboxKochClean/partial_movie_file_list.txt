@@ -1,6 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_koch/1080p60/partial_movie_files/SwissSandboxKochClean/3977891868_3310189718_223132457.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_koch/1080p60/partial_movie_files/SwissSandboxKochClean/2852726489_2620962898_1856148101.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_koch/1080p60/partial_movie_files/SwissSandboxKochClean/2852726489_3049999789_3794482489.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_koch/1080p60/partial_movie_files/SwissSandboxKochClean/2852726489_1914687334_3905643273.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_koch/1080p60/partial_movie_files/SwissSandboxKochClean/2852726489_1433877407_3436045371.mp4'

@@ -1,7 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_julia/1080p60/partial_movie_files/SwissSandboxJuliaClean/3977891868_4012954919_223132457.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_julia/1080p60/partial_movie_files/SwissSandboxJuliaClean/2852726489_1947381768_405896795.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_julia/1080p60/partial_movie_files/SwissSandboxJuliaClean/2852726489_4280013903_3231306917.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_julia/1080p60/partial_movie_files/SwissSandboxJuliaClean/2852726489_2057309772_585892160.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_julia/1080p60/partial_movie_files/SwissSandboxJuliaClean/2852726489_2355265701_1747909339.mp4'
-file 'file:/home/stan/Prod/sandbox/media/videos/showcase_clean_julia/1080p60/partial_movie_files/SwissSandboxJuliaClean/2852726489_1433877407_205841528.mp4'
